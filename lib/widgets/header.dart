@@ -20,26 +20,17 @@ class Header extends StatelessWidget {
       ),
       alignment: Alignment.bottomCenter,
       padding: EdgeInsets.only(bottom: 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (isHomePage) Icon(Icons.menu, color: Colors.white),
-          SizedBox(width: 10),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 32,
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 2,
-            ),
-            textAlign: TextAlign.center,
+      child: Center(  // Center the title in the header
+        child: Text(
+          title,
+          style: TextStyle(
+            fontSize: 32,
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 2,
           ),
-          if (isHomePage) ...[
-            SizedBox(width: 10),
-            Icon(Icons.notifications, color: Colors.white),
-          ],
-        ],
+          textAlign: TextAlign.center,
+        ),
       ),
     );
   }
