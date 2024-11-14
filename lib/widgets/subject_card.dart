@@ -9,7 +9,7 @@ class SubjectCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
       ),
       child: Container(
-        width: 100,
+        width: 99,
         height: 120,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
@@ -25,7 +25,7 @@ class SubjectCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: const Color.fromARGB(255, 0, 0, 0),
             ),
           ),
         ),

@@ -11,7 +11,7 @@ class SignUpPage extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Header(title: 'QUIZ WHIZ'),
+            Header(title: 'QUIZ\nWHIZ'),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 50.0, horizontal: 20.0),
               child: Center(
@@ -74,7 +74,7 @@ class SignUpPage extends StatelessWidget {
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
+                            backgroundColor: const Color.fromARGB(255, 10, 100, 13),
                             padding: EdgeInsets.symmetric(horizontal: 80, vertical: 15),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(5),

@@ -1,6 +1,4 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'home_page.dart';
 import 'signup_page.dart';
 import '../widgets/header.dart';
 
@@ -62,10 +60,7 @@ class LoginPage extends StatelessWidget {
                         child: ElevatedButton(
                           onPressed: () {
                             // Navigate to HomePage on login
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => HomePage()),
-                            );
+                            Navigator.pushReplacementNamed(context, '/home');
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color.fromARGB(255, 10, 100, 13),
@@ -82,25 +77,24 @@ class LoginPage extends StatelessWidget {
                       ),
                       SizedBox(height: 20),
                       Center(
-                        child: RichText(
-                          text: TextSpan(
-                            text: "Don't have an account? ",
-                            style: TextStyle(color: Colors.black54),
-                            children: [
-                              TextSpan(
-                                text: "Sign Up now",
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text("Don't have an account? ", style: TextStyle(color: Colors.black54)),
+                            TextButton(
+                              onPressed: () {
+                                // Navigate to SignUpPage on "Sign Up now" click
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => SignUpPage()),
+                                );
+                              },
+                              child: Text(
+                                "Sign Up now",
                                 style: TextStyle(color: Colors.blue),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () {
-                                    // Navigate to SignUpPage on "Sign Up now" click
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => SignUpPage()),
-                                    );
-                                  },
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ],

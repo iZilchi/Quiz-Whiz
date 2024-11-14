@@ -14,8 +14,8 @@ class Header extends StatelessWidget {
       decoration: BoxDecoration(
         color: Color.fromARGB(255, 10, 100, 13),
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
+          bottomLeft: Radius.circular(50),
+          bottomRight: Radius.circular(50),
         ),
       ),
       alignment: Alignment.bottomCenter,
