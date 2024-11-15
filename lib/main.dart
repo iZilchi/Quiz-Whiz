@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'pages/home_page.dart';
 import 'navigation buttons/quiz_screen.dart';
-import 'navigation buttons/add_screen.dart';
 import 'navigation buttons/subject_screen.dart';
 import 'navigation buttons/profile_screen.dart';
 import 'pages/login_page.dart';
@@ -18,12 +17,11 @@ class QuizWhizApp extends StatelessWidget {
       title: 'Quiz Whiz',
       theme: ThemeData(primarySwatch: Colors.green),
       debugShowCheckedModeBanner: false,
-      initialRoute: '/login', // Start with the login screen
+      initialRoute: '/login',
       routes: {
         '/login': (context) => LoginPage(),
         '/home': (context) => HomePage(),
         '/quiz': (context) => QuizScreen(),
-        '/add': (context) => AddScreen(),
         '/subjects': (context) => SubjectScreen(),
         '/profile': (context) => ProfileScreen(),
       },

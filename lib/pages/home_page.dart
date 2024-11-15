@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import '../widgets/header.dart';
 import '../widgets/subject_card.dart';
 import '../navigation buttons/quiz_screen.dart';
-import '../navigation buttons/add_screen.dart';
 import '../navigation buttons/subject_screen.dart';
 import '../navigation buttons/profile_screen.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -15,9 +16,8 @@ class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = [
-    HomeContent(), // Add a separate widget for the main content of the homepage
+    HomeContent(),
     QuizScreen(),
-    AddScreen(),
     SubjectScreen(),
     ProfileScreen(),
   ];
@@ -41,10 +41,9 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
-        items: [
+        items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.task), label: 'Quiz'),
-          BottomNavigationBarItem(icon: Icon(Icons.add_circle), label: 'Add'),
           BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Subjects'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
@@ -58,8 +57,10 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// This widget defines the main content for the home page
+// Main content widget for the home page
 class HomeContent extends StatelessWidget {
+  const HomeContent({super.key});
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -72,15 +73,22 @@ class HomeContent extends StatelessWidget {
               children: [
                 TextField(
                   decoration: InputDecoration(
-                    prefixIcon: Icon(Icons.search),
+                    prefixIcon: const Opacity(
+                      opacity: 0.7, // Adjusts the opacity of the search icon
+                      child: Icon(Icons.search, color: Colors.black),
+                    ),
                     hintText: 'Search for subjects',
+                    hintStyle: TextStyle(color: Colors.black.withOpacity(0.6)),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.9), // Adds a slightly transparent background
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(30),
+                      borderSide: BorderSide.none,
                     ),
                   ),
                 ),
-                SizedBox(height: 20),
-                Text(
+                const SizedBox(height: 20),
+                const Text(
                   'Recent',
                   style: TextStyle(
                     fontSize: 18,
@@ -88,7 +96,7 @@ class HomeContent extends StatelessWidget {
                     color: Colors.black87,
                   ),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

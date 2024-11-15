@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 
 class QuizScreen extends StatefulWidget {
+  const QuizScreen({super.key});
+
   @override
   _QuizScreenState createState() => _QuizScreenState();
 }
@@ -68,10 +70,10 @@ class _QuizScreenState extends State<QuizScreen> {
             // Question Display
             Text(
               currentQuestion['question'],
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
 
             // Option Buttons
             ...List.generate(options.length, (index) {
@@ -89,18 +91,18 @@ class _QuizScreenState extends State<QuizScreen> {
                         : (_isAnswered && options[index] != currentQuestion['answer']
                             ? Colors.red
                             : Colors.blue),
-                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                   ),
                   child: Text(
                     options[index],
-                    style: TextStyle(fontSize: 18),
+                    style: const TextStyle(fontSize: 18),
                   ),
                 ),
               );
             }),
 
             // Next Question Button
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 if (_isAnswered) {
@@ -109,18 +111,18 @@ class _QuizScreenState extends State<QuizScreen> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueAccent,
-                padding: EdgeInsets.symmetric(horizontal: 80, vertical: 15),
+                padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 15),
               ),
               child: Text(
                 _currentQuestionIndex == _quizQuestions.length - 1
                     ? 'Finish Quiz'
                     : 'Next Question',
-                style: TextStyle(fontSize: 16),
+                style: const TextStyle(fontSize: 16),
               ),
             ),
 
             // Progress Bar
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             LinearProgressIndicator(
               value: (_currentQuestionIndex + 1) / _quizQuestions.length, // Correctly calculate progress
               backgroundColor: Colors.grey[300],
