@@ -1,6 +1,10 @@
 // screens/quiz_screen.dart
 import 'package:flutter/material.dart';
 
+import '../quiz mode/fillintheblanks.dart';
+import '../quiz mode/identification.dart';
+import '../quiz mode/multiplechoice.dart';
+
 class QuizScreen extends StatefulWidget {
   const QuizScreen({super.key});
 
@@ -10,125 +14,63 @@ class QuizScreen extends StatefulWidget {
 
 class _QuizScreenState extends State<QuizScreen> {
   // Example questions and answers
-  final List<Map<String, dynamic>> _quizQuestions = [
+  final List<Map<String, dynamic>> options = [
     {
-      'question': 'What is Flutter?',
-      'options': ['A programming language', 'A framework', 'An IDE', 'A database'],
-      'answer': 'A framework',
+      'title': 'Multiple Choice',
+      'color': const Color.fromARGB(232, 233, 172, 86),
+      'screen': MultipleChoiceScreen(),
     },
     {
-      'question': 'What is Dart used for?',
-      'options': ['Web Development', 'Mobile App Development', 'Game Development', 'Machine Learning'],
-      'answer': 'Mobile App Development',
+      'title': 'Identification Exam',
+      'color': const Color.fromARGB(232, 233, 172, 86),
+      'screen': IdentificationExamScreen(),
     },
     {
-      'question': 'Which company developed Flutter?',
-      'options': ['Google', 'Microsoft', 'Facebook', 'Apple'],
-      'answer': 'Google',
+      'title': 'Fill in the Blanks',
+      'color': const Color.fromARGB(232, 233, 172, 86),
+      'screen': FillInTheBlanksScreen(),
     },
   ];
 
-  int _currentQuestionIndex = 0;
-  bool _isAnswered = false;
-
-  void _nextQuestion(String selectedAnswer) {
-    if (_isAnswered) {
-      return; // Prevents re-selection after answering
-    }
-
-    if (selectedAnswer == _quizQuestions[_currentQuestionIndex]['answer']) {
-      setState(() {
-        // You could track score here if needed
-      });
-    }
-
-    setState(() {
-      _isAnswered = true;
-    });
-  }
-
-  void _goToNext() {
-    if (_currentQuestionIndex < _quizQuestions.length - 1) {
-      setState(() {
-        _currentQuestionIndex++;
-        _isAnswered = false; // Reset answer for the next question
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final currentQuestion = _quizQuestions[_currentQuestionIndex];
-    final options = currentQuestion['options'];
-
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Question Display
-            Text(
-              currentQuestion['question'],
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-
-            // Option Buttons
-            ...List.generate(options.length, (index) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (!_isAnswered) {
-                      _nextQuestion(options[index]);
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _isAnswered && options[index] == currentQuestion['answer']
-                        ? Colors.green
-                        : (_isAnswered && options[index] != currentQuestion['answer']
-                            ? Colors.red
-                            : Colors.blue),
-                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                  ),
-                  child: Text(
-                    options[index],
-                    style: const TextStyle(fontSize: 18),
+        padding: const EdgeInsets.all(10.0),
+        child: ListView.builder(
+          itemCount: options.length,
+          itemBuilder: (context, index) {
+            final option = options[index];
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => option['screen']),
+                );
+              },
+              child: Card(
+                margin: EdgeInsets.symmetric(vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                color: option['color'],
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Center(
+                    child: Text(
+                      option['title'],
+                      style: TextStyle(
+                        fontFamily: 'Satoshi', // Use Satoshi font
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
-              );
-            }),
-
-            // Next Question Button
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                if (_isAnswered) {
-                  _goToNext();
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
-                padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 15),
               ),
-              child: Text(
-                _currentQuestionIndex == _quizQuestions.length - 1
-                    ? 'Finish Quiz'
-                    : 'Next Question',
-                style: const TextStyle(fontSize: 16),
-              ),
-            ),
-
-            // Progress Bar
-            const SizedBox(height: 20),
-            LinearProgressIndicator(
-              value: (_currentQuestionIndex + 1) / _quizQuestions.length, // Correctly calculate progress
-              backgroundColor: Colors.grey[300],
-              color: Colors.blue,
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
