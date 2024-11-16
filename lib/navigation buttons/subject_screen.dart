@@ -70,10 +70,34 @@ class _SubjectScreenState extends State<SubjectScreen> {
     );
   }
 
-  void _clearFlashcardSets() {
-    setState(() {
-      flashcardSets.clear();
-    });
+  // Function to delete a specific flashcard set
+  void _deleteFlashcardSet(int index) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Delete Flashcard Set'),
+          content: const Text('Are you sure you want to delete this flashcard set?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  flashcardSets.removeAt(index);
+                });
+                Navigator.pop(context);
+              },
+              child: const Text('Delete'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog without deleting
+              },
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _openFlashcardSet(String setName) {
@@ -92,13 +116,6 @@ class _SubjectScreenState extends State<SubjectScreen> {
       appBar: AppBar(
         title: const Text('Subjects'),
         backgroundColor: Colors.grey[200], // Ensure AppBar is also grey to match the background
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: _clearFlashcardSets,
-            tooltip: 'Clear All',
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -125,12 +142,24 @@ class _SubjectScreenState extends State<SubjectScreen> {
                     ),
                   ],
                 ),
-                child: Center(
-                  child: Text(
-                    flashcardSets[index],
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                child: Stack(
+                  children: [
+                    Center(
+                      child: Text(
+                        flashcardSets[index],
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () => _deleteFlashcardSet(index), // Delete on press
+                      ),
+                    ),
+                  ],
                 ),
               ),
             );
