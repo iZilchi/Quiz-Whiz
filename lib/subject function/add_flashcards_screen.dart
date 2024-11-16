@@ -1,32 +1,29 @@
+import 'dart:math';
+
+import 'package:flashcard_project/subject%20function/add_flashcardSets_screen.dart';
 import 'package:flutter/material.dart';
 
-class Flashcard {
-  String term;
-  String definition;
-
-  Flashcard(this.term, this.definition);
-}
-
 class AddFlashcardScreen extends StatefulWidget {
-  final String setName;
+  final FlashcardSet flashcardSet;
 
-  const AddFlashcardScreen({super.key, required this.setName});
+  const AddFlashcardScreen({super.key, required this.flashcardSet});
 
   @override
   _AddFlashcardScreenState createState() => _AddFlashcardScreenState();
 }
 
 class _AddFlashcardScreenState extends State<AddFlashcardScreen> {
-  List<Flashcard> flashcards = [];
   int currentIndex = 0;
+  bool isTermVisible = true;
 
   // Function to add new flashcard
   void _addFlashcard() {
+    TextEditingController termController = TextEditingController();
+    TextEditingController definitionController = TextEditingController();
+
     showDialog(
       context: context,
       builder: (context) {
-        TextEditingController termController = TextEditingController();
-        TextEditingController definitionController = TextEditingController();
 
         return AlertDialog(
           title: const Text('Add New Flashcard'),
@@ -48,8 +45,8 @@ class _AddFlashcardScreenState extends State<AddFlashcardScreen> {
               onPressed: () {
                 if (termController.text.isNotEmpty && definitionController.text.isNotEmpty) {
                   setState(() {
-                    flashcards.add(Flashcard(termController.text, definitionController.text));
-                    currentIndex = flashcards.length - 1; // Show the newly added card
+                    widget.flashcardSet.flashcards.add(Flashcard(termController.text, definitionController.text));
+                    currentIndex = widget.flashcardSet.flashcards.length - 1; // Show the newly added card
                   });
                   Navigator.pop(context);
                 }
@@ -62,10 +59,18 @@ class _AddFlashcardScreenState extends State<AddFlashcardScreen> {
     );
   }
 
+  // Function to shuffle flashcards
+  void _shuffleFlashcards() {
+    setState(() {
+      widget.flashcardSet.flashcards.shuffle(Random()); // Shuffle using Random()
+      currentIndex = 0; // Reset to the first card after shuffling
+    });
+  }
+
   // Function to edit an existing flashcard
   void _editFlashcard(int index) {
-    TextEditingController termController = TextEditingController(text: flashcards[index].term);
-    TextEditingController definitionController = TextEditingController(text: flashcards[index].definition);
+    TextEditingController termController = TextEditingController(text: widget.flashcardSet.flashcards[index].term);
+    TextEditingController definitionController = TextEditingController(text: widget.flashcardSet.flashcards[index].definition);
 
     showDialog(
       context: context,
@@ -88,8 +93,8 @@ class _AddFlashcardScreenState extends State<AddFlashcardScreen> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  flashcards[index].term = termController.text;
-                  flashcards[index].definition = definitionController.text;
+                  widget.flashcardSet.flashcards[index].term = termController.text;
+                  widget.flashcardSet.flashcards[index].definition = definitionController.text;
                 });
                 Navigator.pop(context);
               },
@@ -113,9 +118,9 @@ class _AddFlashcardScreenState extends State<AddFlashcardScreen> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  flashcards.removeAt(index);
-                  if (currentIndex >= flashcards.length) {
-                    currentIndex = flashcards.length - 1; // Reset to last card if deleted
+                  widget.flashcardSet.flashcards.removeAt(index);
+                  if (currentIndex >= widget.flashcardSet.flashcards.length) {
+                    currentIndex = widget.flashcardSet.flashcards.length - 1; // Reset to last card if deleted
                   }
                 });
                 Navigator.pop(context);
@@ -136,57 +141,85 @@ class _AddFlashcardScreenState extends State<AddFlashcardScreen> {
 
   // Function to move to the next card
   void _nextCard() {
-    setState(() {
-      currentIndex = (currentIndex + 1) % flashcards.length;
-    });
+    if (currentIndex < widget.flashcardSet.flashcards.length - 1) {
+      setState(() {
+        currentIndex++;
+      });
+    } else {
+      setState(() {
+        currentIndex = 0;
+      });
+    }
   }
 
-  // Function to move to the previous card
   void _previousCard() {
-    setState(() {
-      currentIndex = (currentIndex - 1 + flashcards.length) % flashcards.length;
-    });
+    if (currentIndex > 0) {
+      setState(() {
+        currentIndex--;
+      });
+    } else {
+      setState(() {
+        currentIndex = widget.flashcardSet.flashcards.length - 1;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if(widget.flashcardSet.flashcards.isEmpty){
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(widget.flashcardSet.title),
+        ),
+        body: Center(
+          child: Text('No flashcards added yet.'),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: _addFlashcard,
+          child: Icon(Icons.add),
+        ),
+      );
+    }
+
+    final flashcard = widget.flashcardSet.flashcards[currentIndex];
+
     return Scaffold(
-      appBar: AppBar(title: Text('${widget.setName} Flashcards')),
-      body: flashcards.isEmpty
-          ? const Center(child: Text('No flashcards added yet.'))
-          : Center(
-              child: Card(
-                elevation: 5,
-                margin: const EdgeInsets.all(20),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        flashcards[currentIndex].term,
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        flashcards[currentIndex].definition,
-                        style: const TextStyle(fontSize: 18),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () => _editFlashcard(currentIndex),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () => _deleteFlashcard(currentIndex),
-                          ),
-                        ],
-                      ),
-                    ],
+      appBar: AppBar(title: Text('${widget.flashcardSet.title} Flashcards')),
+      body: Center(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    isTermVisible = !isTermVisible;
+                  });
+                },
+                child: Card(
+                  elevation: 5,
+                  margin: EdgeInsets.all(20),
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          isTermVisible ? flashcard.term : flashcard.definition,
+                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.edit),
+                              onPressed: () => _editFlashcard(currentIndex),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete),
+                              onPressed: () => _deleteFlashcard(currentIndex),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -196,29 +229,28 @@ class _AddFlashcardScreenState extends State<AddFlashcardScreen> {
         children: [
           FloatingActionButton(
             onPressed: _addFlashcard,
-            child: const Icon(Icons.add),
+            child: Icon(Icons.add),
+            heroTag: null,
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
+          FloatingActionButton(
+            onPressed: _shuffleFlashcards, // Shuffle on press
+            child: Icon(Icons.shuffle),
+            heroTag: null,
+          ),
+          SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.arrow_back),
+                icon: Icon(Icons.arrow_back),
                 onPressed: _previousCard,
               ),
               IconButton(
-                icon: const Icon(Icons.arrow_forward),
+                icon: Icon(Icons.arrow_forward),
                 onPressed: _nextCard,
               ),
             ],
-          ),
-          // Number indicator placed below the Card container
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: Text(
-              '${currentIndex + 1} / ${flashcards.length}',
-              style: const TextStyle(fontSize: 16, color: Colors.grey),
-            ),
           ),
         ],
       ),

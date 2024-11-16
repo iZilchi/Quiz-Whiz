@@ -1,49 +1,59 @@
+import 'package:flashcard_project/navigation%20buttons/subject_screen.dart';
+import 'package:flashcard_project/subject%20function/add_flashcards_screen.dart';
 import 'package:flutter/material.dart';
-import '../subject function/add_flashcardSets_screen.dart';
 
-class Subject {
-  String title;
-  List<FlashcardSet> flashcardSets;
+class Flashcard {
+  String term;
+  String definition;
 
-  Subject(this.title) : flashcardSets = [];
+  Flashcard(this.term, this.definition);
 }
 
-class SubjectScreen extends StatefulWidget {
-  const SubjectScreen({super.key});
+class FlashcardSet {
+  String title;
+  List<Flashcard> flashcards;
+
+  FlashcardSet(this.title) : flashcards = [];
+}
+
+class AddFlashcardSetScreen extends StatefulWidget {
+  final Subject subject;
+
+  const AddFlashcardSetScreen({super.key, required this.subject});
 
   @override
-  _SubjectScreenState createState() => _SubjectScreenState();
+  _AddFlashcardSetScreenState createState() => _AddFlashcardSetScreenState();
 }
 
-class _SubjectScreenState extends State<SubjectScreen> {
-  List<Subject> subjects = [];
+class _AddFlashcardSetScreenState extends State<AddFlashcardSetScreen> {
   int? _hoveredIndex;
 
-  void _addSubject() {
-    TextEditingController subjectController = TextEditingController();
+  // Function to add new flashcard
+  void _addFlashcardSet() {
+    TextEditingController flashcardSetController = TextEditingController();
 
     showDialog(
       context: context,
       builder: (context) {
         
         return AlertDialog(
-          title: const Text('Create Subject'),
+          title: const Text('Create Flashcard Set'),
           content: TextField(
-            controller: subjectController,
-            decoration: const InputDecoration(labelText: 'Subject Title'),
+            controller: flashcardSetController,
+            decoration: const InputDecoration(labelText: 'flashcard Set Title'),
           ),
           actions: [
             TextButton(
               onPressed: () {
-                final setName = subjectController.text.trim();
+                final setName = flashcardSetController.text.trim();
                 if (setName.isNotEmpty) {
                   setState(() {
-                    subjects.add(Subject(subjectController.text));
+                    widget.subject.flashcardSets.add(FlashcardSet(flashcardSetController.text));
                   });
                   Navigator.pop(context);
                 }
               },
-              child: const Text('Create'),
+              child: const Text('Add'),
             ),
           ],
         );
@@ -51,23 +61,24 @@ class _SubjectScreenState extends State<SubjectScreen> {
     );
   }
 
-  void _editSubject(int index) {
-    TextEditingController subjectController = TextEditingController(text: subjects[index].title);
+  // Function to edit an existing flashcard
+  void _editFlashcardSet(int index) {
+    TextEditingController flashcardSetController = TextEditingController(text: widget.subject.flashcardSets[index].title);
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Edit Subject'),
+          title: const Text('Edit Flashcard Set'),
           content: TextField(
-            controller: subjectController,
-            decoration: const InputDecoration(labelText: 'Set New Title'),
+            controller: flashcardSetController,
+            decoration: const InputDecoration(labelText: 'Set New Flashcard Set Title'),
           ),
           actions: [
             TextButton(
               onPressed: () {
                 setState(() {
-                  subjects[index].title = subjectController.text.trim();
+                  widget.subject.flashcardSets[index].title = flashcardSetController.text.trim();
                 });
                 Navigator.pop(context);
               },
@@ -79,19 +90,19 @@ class _SubjectScreenState extends State<SubjectScreen> {
     );
   }
 
-  // Function to delete a specific flashcard set
-  void _deleteSubject(int index) {
+  // Function to delete a flashcard
+  void _deleteFlashcardSet(int index) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Delete Subject'),
-          content: const Text('Deleting this subject will delete everything inside it.'),
+          title: const Text('Delete Flashcard Set'),
+          content: const Text('Deleting this flashcard set will also delete the flashcards created inside it.'),
           actions: [
             TextButton(
               onPressed: () {
                 setState(() {
-                  subjects.removeAt(index);
+                  widget.subject.flashcardSets.removeAt(index);
                 });
                 Navigator.pop(context);
               },
@@ -109,26 +120,17 @@ class _SubjectScreenState extends State<SubjectScreen> {
     );
   }
 
-  void _openSubject(Subject subject) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AddFlashcardSetScreen(subject: subject),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[200], // Set the background color of the entire Scaffold
       appBar: AppBar(
-        title: const Text('Subjects'),
+        title: Text('Flashcard Sets for ${widget.subject.title}'),
         backgroundColor: Colors.grey[200], // Ensure AppBar is also grey to match the background
       ),
-      body: subjects.isEmpty 
+      body: widget.subject.flashcardSets.isEmpty 
         ? Center(
-          child: Text('No subjects created yet.'),
+          child: Text('No flashcard sets created yet.'),
         ) 
         : Padding(
         padding: const EdgeInsets.all(16.0),
@@ -139,7 +141,7 @@ class _SubjectScreenState extends State<SubjectScreen> {
             mainAxisSpacing: 16,
             childAspectRatio: 1.5,
           ),
-          itemCount: subjects.length,
+          itemCount: widget.subject.flashcardSets.length,
           itemBuilder: (context, index) {
             return MouseRegion(
 
@@ -155,7 +157,14 @@ class _SubjectScreenState extends State<SubjectScreen> {
               },
 
               child: GestureDetector(
-                onTap: () => _openSubject(subjects[index]), // Open set on tap
+                onTap: () => {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AddFlashcardScreen(flashcardSet: widget.subject.flashcardSets[index])
+                    ),
+                  )
+                }, // Open set on tap
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.grey[100], // Set the container's background color to a slightly darker grey
@@ -172,7 +181,7 @@ class _SubjectScreenState extends State<SubjectScreen> {
                     children: [
                       Center(
                         child: Text(
-                          subjects[index].title,
+                          widget.subject.flashcardSets[index].title,
                           textAlign: TextAlign.center,
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
@@ -185,11 +194,11 @@ class _SubjectScreenState extends State<SubjectScreen> {
                             children: [
                               IconButton(
                                     icon: Icon(Icons.edit),
-                                    onPressed: () => _editSubject(index),
+                                    onPressed: () => _editFlashcardSet(index),
                                   ),
                               IconButton(
                                 icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => _deleteSubject(index), // Delete on press
+                                onPressed: () => _deleteFlashcardSet(index), // Delete on press
                               ),
                             ],
                           ),
@@ -203,7 +212,7 @@ class _SubjectScreenState extends State<SubjectScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addSubject,
+        onPressed: _addFlashcardSet,
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),
         child: const Icon(Icons.add),
       ),
