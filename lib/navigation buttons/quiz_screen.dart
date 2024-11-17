@@ -13,24 +13,33 @@ class QuizScreen extends StatefulWidget {
 }
 
 class _QuizScreenState extends State<QuizScreen> {
-  // Example questions and answers
-  final List<Map<String, dynamic>> options = [
-    {
-      'title': 'Multiple Choice',
-      'color': const Color.fromARGB(232, 233, 172, 86),
-      'screen': MultipleChoiceScreen(),
-    },
-    {
-      'title': 'Identification Exam',
-      'color': const Color.fromARGB(232, 233, 172, 86),
-      'screen': IdentificationExamScreen(),
-    },
-    {
-      'title': 'Fill in the Blanks',
-      'color': const Color.fromARGB(232, 233, 172, 86),
-      'screen': FillInTheBlanksScreen(),
-    },
-  ];
+  final List<Map<String, dynamic>> options = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeOptions();
+  }
+
+  void _initializeOptions() {
+    options.addAll([
+      {
+        'title': 'Multiple Choice',
+        'color': const Color.fromARGB(232, 233, 172, 86),
+        'screen': MultipleChoiceScreen(flashcards: []), 
+      },
+      {
+        'title': 'Identification Exam',
+        'color': const Color.fromARGB(232, 233, 172, 86),
+        'screen': IdentificationExamScreen(),
+      },
+      {
+        'title': 'Fill in the Blanks',
+        'color': const Color.fromARGB(232, 233, 172, 86),
+        'screen': FillInTheBlanksScreen(),
+      },
+    ]);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +58,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 );
               },
               child: Card(
-                margin: EdgeInsets.symmetric(vertical: 10),
+                margin: const EdgeInsets.symmetric(vertical: 10),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
                 ),
@@ -59,7 +68,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   child: Center(
                     child: Text(
                       option['title'],
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Satoshi', // Use Satoshi font
                         fontSize: 18,
                         fontWeight: FontWeight.bold,

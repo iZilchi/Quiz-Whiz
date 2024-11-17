@@ -40,7 +40,7 @@ class _AddFlashcardSetScreenState extends State<AddFlashcardSetScreen> {
           title: const Text('Create Flashcard Set'),
           content: TextField(
             controller: flashcardSetController,
-            decoration: const InputDecoration(labelText: 'flashcard Set Title'),
+            decoration: const InputDecoration(labelText: 'Flashcard Set Title'),
           ),
           actions: [
             TextButton(

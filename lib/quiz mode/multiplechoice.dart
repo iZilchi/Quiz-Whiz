@@ -1,33 +1,55 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 
 class MultipleChoiceScreen extends StatefulWidget {
+  final List<Flashcard> flashcards;
+
+  const MultipleChoiceScreen({Key? key, required this.flashcards})
+      : super(key: key);
+
   @override
   _MultipleChoiceScreenState createState() => _MultipleChoiceScreenState();
 }
 
 class _MultipleChoiceScreenState extends State<MultipleChoiceScreen> {
-  final List<Map<String, dynamic>> questions = [
-    {
-      'question': 'What is the capital of France?',
-      'options': ['Paris', 'London', 'Berlin', 'Madrid'],
-      'selectedAnswer': null,
-      'correctAnswer': 'Paris',
-    },
-    {
-      'question': 'Which programming language is used by Flutter?',
-      'options': ['Dart', 'Java', 'Kotlin', 'Swift'],
-      'selectedAnswer': null,
-      'correctAnswer': 'Dart',
-    },
-    {
-      'question': 'What is 2 + 2?',
-      'options': ['3', '4', '5', '6'],
-      'selectedAnswer': null,
-      'correctAnswer': '4',
-    }
-  ];
-
+  late List<Map<String, dynamic>> questions;
   int _currentQuestionIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _generateQuestions();
+  }
+
+  void _generateQuestions() {
+    if (widget.flashcards.length < 4) {
+      // Ensure there are at least 4 flashcards
+      questions = [];
+      return;
+    }
+
+    List<Flashcard> flashcards = List.from(widget.flashcards);
+    flashcards.shuffle(Random());
+
+    questions = flashcards.map((flashcard) {
+      // Get options from other flashcards
+      List<String> options = flashcards
+          .where((f) => f != flashcard)
+          .take(3)
+          .map((f) => f.term)
+          .toList();
+
+      options.add(flashcard.term);
+      options.shuffle(Random());
+
+      return {
+        'question': flashcard.definition,
+        'options': options,
+        'correctAnswer': flashcard.term,
+        'selectedAnswer': null,
+      };
+    }).toList();
+  }
 
   void _updateAnswer(int questionIndex, String answer) {
     setState(() {
@@ -52,40 +74,21 @@ class _MultipleChoiceScreenState extends State<MultipleChoiceScreen> {
   }
 
   void _submitAnswers() {
-    int correctAnswers = 0;
-    for (var question in questions) {
-      if (question['selectedAnswer'] == question['correctAnswer']) {
-        correctAnswers++;
-      }
-    }
+    int correctAnswers = questions.where((question) =>
+        question['selectedAnswer'] == question['correctAnswer']).length;
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: Text('Test Results'),
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ...questions.map<Widget>((question) {
-                return Text(
-                  '${question['question']} \nAnswer: ${question['selectedAnswer'] ?? 'Not answered'}\n',
-                  style: TextStyle(fontSize: 16),
-                );
-              }).toList(),
-              SizedBox(height: 20),
-              Text(
-                'You got $correctAnswers out of ${questions.length} correct.',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ],
+          content: Text(
+            'You got $correctAnswers out of ${questions.length} correct.',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: Text('OK'),
             ),
           ],
@@ -96,26 +99,18 @@ class _MultipleChoiceScreenState extends State<MultipleChoiceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (questions.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: Text('Quiz Mode')),
+        body: Center(child: Text('Not enough flashcards to start the quiz.')),
+      );
+    }
+
     final question = questions[_currentQuestionIndex];
     double progress = (_currentQuestionIndex + 1) / questions.length;
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        title: Text('Multiple Choice Questions'),
-        backgroundColor: Colors.green,
-        centerTitle: true,
-        titleTextStyle: TextStyle(
-          color: Colors.white, // Set the title text color to white
-          fontSize: 22, // You can adjust the font size as needed
-          fontWeight: FontWeight.bold, // Bold the text
-        ),
-      ),
+      appBar: AppBar(title: Text('Quiz Mode')),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -126,7 +121,7 @@ class _MultipleChoiceScreenState extends State<MultipleChoiceScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'English',
+                    question['question'],
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -142,34 +137,24 @@ class _MultipleChoiceScreenState extends State<MultipleChoiceScreen> {
                     elevation: 5,
                     child: Padding(
                       padding: const EdgeInsets.all(20.0),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              question['question'],
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ...question['options'].map<Widget>((option) {
+                            return ListTile(
+                              title: Text(option),
+                              leading: Radio<String>(
+                                value: option,
+                                groupValue: question['selectedAnswer'],
+                                onChanged: (String? value) {
+                                  if (value != null) {
+                                    _updateAnswer(_currentQuestionIndex, value);
+                                  }
+                                },
                               ),
-                            ),
-                            SizedBox(height: 20),
-                            ...question['options'].map<Widget>((option) {
-                              return ListTile(
-                                title: Text(option),
-                                leading: Radio<String>(
-                                  value: option,
-                                  groupValue: question['selectedAnswer'],
-                                  onChanged: (String? value) {
-                                    if (value != null) {
-                                      _updateAnswer(_currentQuestionIndex, value);
-                                    }
-                                  },
-                                ),
-                              );
-                            }).toList(),
-                          ],
-                        ),
+                            );
+                          }).toList(),
+                        ],
                       ),
                     ),
                   ),
@@ -177,7 +162,6 @@ class _MultipleChoiceScreenState extends State<MultipleChoiceScreen> {
               ),
             ),
           ),
-          // Buttons at the bottom
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Row(
@@ -186,31 +170,24 @@ class _MultipleChoiceScreenState extends State<MultipleChoiceScreen> {
                 ElevatedButton(
                   onPressed: _currentQuestionIndex > 0 ? _previousQuestion : null,
                   child: Text('Previous'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                  ),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
                 ),
                 SizedBox(width: 20),
                 if (_currentQuestionIndex < questions.length - 1)
                   ElevatedButton(
                     onPressed: _nextQuestion,
                     child: Text('Next'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                    ),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
                   ),
                 if (_currentQuestionIndex == questions.length - 1)
                   ElevatedButton(
                     onPressed: _submitAnswers,
                     child: Text('Submit'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                    ),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
                   ),
               ],
             ),
           ),
-          // Progress bar at the bottom
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -232,4 +209,11 @@ class _MultipleChoiceScreenState extends State<MultipleChoiceScreen> {
       ),
     );
   }
+}
+
+class Flashcard {
+  String term;
+  String definition;
+
+  Flashcard(this.term, this.definition);
 }
