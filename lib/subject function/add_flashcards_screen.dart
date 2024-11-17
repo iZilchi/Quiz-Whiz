@@ -1,258 +1,152 @@
-import 'dart:math';
-
-import 'package:flashcard_project/subject%20function/add_flashcardSets_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models.dart';
+import '../providers/flashcards_provider.dart'; // Import the provider
 
-class AddFlashcardScreen extends StatefulWidget {
+final hoverIndexProvider = StateProvider<int?>((ref) => null);
+final currentFlashcardIndexProvider = StateProvider<int>((ref) => 0);
+
+class AddFlashcardScreen extends ConsumerWidget {
   final FlashcardSet flashcardSet;
 
   const AddFlashcardScreen({super.key, required this.flashcardSet});
 
   @override
-  _AddFlashcardScreenState createState() => _AddFlashcardScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final flashcards = ref.watch(flashcardsProvider(flashcardSet)); // Watch the flashcards
+    final currentFlashcardIndex = ref.watch(currentFlashcardIndexProvider);
 
-class _AddFlashcardScreenState extends State<AddFlashcardScreen> {
-  int currentIndex = 0;
-  bool isTermVisible = true;
+    void addFlashcard() {
+      TextEditingController termController = TextEditingController();
+      TextEditingController definitionController = TextEditingController();
 
-  // Function to add new flashcard
-  void _addFlashcard() {
-    TextEditingController termController = TextEditingController();
-    TextEditingController definitionController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) {
-
-        return AlertDialog(
-          title: const Text('Add New Flashcard'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: termController,
-                decoration: const InputDecoration(labelText: 'Term'),
-              ),
-              TextField(
-                controller: definitionController,
-                decoration: const InputDecoration(labelText: 'Definition'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                if (termController.text.isNotEmpty && definitionController.text.isNotEmpty) {
-                  setState(() {
-                    widget.flashcardSet.flashcards.add(Flashcard(termController.text, definitionController.text));
-                    currentIndex = widget.flashcardSet.flashcards.length - 1; // Show the newly added card
-                  });
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('Add'),
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Create Flashcard'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min, // Ensure the dialog is not too large
+              children: [
+                TextField(
+                  controller: termController,
+                  decoration: const InputDecoration(labelText: 'Term'),
+                ),
+                TextField(
+                  controller: definitionController,
+                  decoration: const InputDecoration(labelText: 'Definition'),
+                ),
+              ],
             ),
-          ],
-        );
-      },
-    );
-  }
-
-  // Function to shuffle flashcards
-  void _shuffleFlashcards() {
-    setState(() {
-      widget.flashcardSet.flashcards.shuffle(Random()); // Shuffle using Random()
-      currentIndex = 0; // Reset to the first card after shuffling
-    });
-  }
-
-  // Function to edit an existing flashcard
-  void _editFlashcard(int index) {
-    TextEditingController termController = TextEditingController(text: widget.flashcardSet.flashcards[index].term);
-    TextEditingController definitionController = TextEditingController(text: widget.flashcardSet.flashcards[index].definition);
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Edit Flashcard'),
-          content: Column(
-            children: [
-              TextField(
-                controller: termController,
-                decoration: const InputDecoration(labelText: 'Term'),
-              ),
-              TextField(
-                controller: definitionController,
-                decoration: const InputDecoration(labelText: 'Definition'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  widget.flashcardSet.flashcards[index].term = termController.text;
-                  widget.flashcardSet.flashcards[index].definition = definitionController.text;
-                });
-                Navigator.pop(context);
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  // Function to delete a flashcard
-  void _deleteFlashcard(int index) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Delete Flashcard'),
-          content: const Text('Are you sure you want to delete this flashcard?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  widget.flashcardSet.flashcards.removeAt(index);
-                  if (currentIndex >= widget.flashcardSet.flashcards.length) {
-                    currentIndex = widget.flashcardSet.flashcards.length - 1; // Reset to last card if deleted
+            actions: [
+              TextButton(
+                onPressed: () {
+                  final term = termController.text.trim();
+                  final definition = definitionController.text.trim();
+                  if (term.isNotEmpty && definition.isNotEmpty) {
+                    ref
+                        .read(flashcardsProvider(flashcardSet).notifier)
+                        .addFlashcard(term, definition); // Add flashcard
+                    Navigator.pop(context);
                   }
-                });
-                Navigator.pop(context);
-              },
-              child: const Text('Delete'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close the dialog
-              },
-              child: const Text('Cancel'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  // Function to move to the next card
-  void _nextCard() {
-    if (currentIndex < widget.flashcardSet.flashcards.length - 1) {
-      setState(() {
-        currentIndex++;
-      });
-    } else {
-      setState(() {
-        currentIndex = 0;
-      });
-    }
-  }
-
-  void _previousCard() {
-    if (currentIndex > 0) {
-      setState(() {
-        currentIndex--;
-      });
-    } else {
-      setState(() {
-        currentIndex = widget.flashcardSet.flashcards.length - 1;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if(widget.flashcardSet.flashcards.isEmpty){
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.flashcardSet.title),
-        ),
-        body: Center(
-          child: Text('No flashcards added yet.'),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: _addFlashcard,
-          child: Icon(Icons.add),
-        ),
+                },
+                child: const Text('Add'),
+              ),
+            ],
+          );
+        },
       );
     }
 
-    final flashcard = widget.flashcardSet.flashcards[currentIndex];
+    void navigateToPreviousFlashcard() {
+      if (currentFlashcardIndex > 0) {
+        ref
+            .read(currentFlashcardIndexProvider.notifier)
+            .state = currentFlashcardIndex - 1;
+      }
+    }
+
+    void navigateToNextFlashcard() {
+      if (currentFlashcardIndex < flashcards.length - 1) {
+        ref
+            .read(currentFlashcardIndexProvider.notifier)
+            .state = currentFlashcardIndex + 1;
+      }
+    }
 
     return Scaffold(
-      appBar: AppBar(title: Text('${widget.flashcardSet.title} Flashcards')),
-      body: Center(
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    isTermVisible = !isTermVisible;
-                  });
-                },
-                child: Card(
-                  elevation: 5,
-                  margin: EdgeInsets.all(20),
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          isTermVisible ? flashcard.term : flashcard.definition,
-                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.edit),
-                              onPressed: () => _editFlashcard(currentIndex),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.delete),
-                              onPressed: () => _deleteFlashcard(currentIndex),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+      backgroundColor: Colors.grey[200],
+      appBar: AppBar(
+        title: Text('Flashcards for ${flashcardSet.title}'),
+        backgroundColor: Colors.grey[200],
+      ),
+      body: flashcards.isEmpty
+          ? const Center(child: Text('No flashcards created yet.'))
+          : Center(
+              child: Card(
+                elevation: 5,
+                margin: const EdgeInsets.all(16),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        flashcards[currentFlashcardIndex].term,
+                        style: const TextStyle(
+                            fontSize: 24, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        flashcards[currentFlashcardIndex].definition,
+                        style: const TextStyle(fontSize: 18),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back, color: Colors.blue),
+                            onPressed: navigateToPreviousFlashcard,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.arrow_forward, color: Colors.blue),
+                            onPressed: navigateToNextFlashcard,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () {
+                              // Edit functionality
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              ref
+                                  .read(flashcardsProvider(flashcardSet).notifier)
+                                  .deleteFlashcard(currentFlashcardIndex); // Delete flashcard
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          FloatingActionButton(
-            onPressed: _addFlashcard,
-            child: Icon(Icons.add),
-            heroTag: null,
-          ),
-          SizedBox(height: 10),
-          FloatingActionButton(
-            onPressed: _shuffleFlashcards, // Shuffle on press
-            child: Icon(Icons.shuffle),
-            heroTag: null,
-          ),
-          SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                icon: Icon(Icons.arrow_back),
-                onPressed: _previousCard,
-              ),
-              IconButton(
-                icon: Icon(Icons.arrow_forward),
-                onPressed: _nextCard,
-              ),
-            ],
-          ),
-        ],
+      floatingActionButton: FloatingActionButton(
+        onPressed: addFlashcard,
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+        child: const Icon(Icons.add),
       ),
     );
   }
