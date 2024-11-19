@@ -20,7 +20,6 @@ class _MultipleChoiceScreenState extends ConsumerState<MultipleChoiceScreen> {
 
   void _startQuiz(List<Flashcard> flashcards) {
     if (flashcards.length < 4) {
-      // Show an alert if there are fewer than 4 flashcards
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -40,10 +39,8 @@ class _MultipleChoiceScreenState extends ConsumerState<MultipleChoiceScreen> {
     List<Map<String, dynamic>> questions = [];
 
     for (var flashcard in flashcards) {
-      // Create a list to hold the answer choices
       List<String> choices = [flashcard.definition];
 
-      // Add 3 random incorrect answers
       while (choices.length < 4) {
         var randomFlashcard = flashcards[Random().nextInt(flashcards.length)];
 
@@ -52,25 +49,20 @@ class _MultipleChoiceScreenState extends ConsumerState<MultipleChoiceScreen> {
         }
       }
 
-      // Shuffle the choices to randomize the order
       choices.shuffle();
 
-      // Create a question with the term and the shuffled answer choices
       questions.add({
         'question': flashcard.term,
         'correctAnswer': flashcard.definition,
         'choices': choices,
       });
     }
-
-    // Shuffle the questions as well (optional, if needed)
     questions.shuffle();
 
-    // Navigate to the quiz page and pass the questions
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => QuizPage(questions: questions), // Navigate to QuizPage
+        builder: (context) => QuizPage(questions: questions),
       ),
     );
   }
@@ -86,14 +78,13 @@ class _MultipleChoiceScreenState extends ConsumerState<MultipleChoiceScreen> {
       ),
       body: Column(
         children: [
-          // Dropdown for Subjects
           DropdownButton<Subject>(
             hint: const Text('Select Subject'),
             value: selectedSubject,
             onChanged: (newValue) {
               setState(() {
                 selectedSubject = newValue;
-                selectedFlashcardSet = null; // Reset flashcard set
+                selectedFlashcardSet = null;
               });
             },
             items: subjects.map((subject) {
@@ -122,7 +113,7 @@ class _MultipleChoiceScreenState extends ConsumerState<MultipleChoiceScreen> {
           const Spacer(),
           ElevatedButton(
             onPressed: () {
-              // Show dialog if subject is not selected
+
               if (selectedSubject == null) {
                 showDialog(
                   context: context,
@@ -140,7 +131,6 @@ class _MultipleChoiceScreenState extends ConsumerState<MultipleChoiceScreen> {
                 return;
               }
 
-              // Show dialog if flashcard set is not selected
               if (selectedFlashcardSet == null) {
                 showDialog(
                   context: context,
@@ -158,10 +148,8 @@ class _MultipleChoiceScreenState extends ConsumerState<MultipleChoiceScreen> {
                 return;
               }
 
-              // Get flashcards
               final flashcards = ref.watch(flashcardsProvider(selectedFlashcardSet!)) as List<Flashcard>;
 
-              // Start quiz
               _startQuiz(flashcards);
             },
             child: const Text('Start Quiz'),

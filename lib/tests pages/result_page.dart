@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'multiple_choice_quiz_page.dart';
 import '../pages/home_page.dart';
 import '../tests pages/review_answers_page.dart';
-import 'identification_quiz_page.dart';  // Import IdentificationQuizPage
+import 'identification_quiz_page.dart';
 
 class ResultPage extends StatelessWidget {
   final int score;
   final int totalQuestions;
   final Map<int, String?> selectedAnswers;
   final List<Map<String, dynamic>> questions;
-  final String quizType;  // Add quizType parameter
+  final String quizType;
 
   const ResultPage({
     super.key,
@@ -17,7 +17,7 @@ class ResultPage extends StatelessWidget {
     required this.totalQuestions,
     required this.selectedAnswers,
     required this.questions,
-    required this.quizType,  // Include quizType in the constructor
+    required this.quizType,
   });
 
   @override
@@ -74,7 +74,6 @@ class ResultPage extends StatelessWidget {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  // Navigate to the correct quiz page based on quizType
                   if (quizType == 'MultipleChoice') {
                     Navigator.pushReplacement(
                       context,

@@ -19,7 +19,6 @@ class _IdentificationScreenState extends ConsumerState<IdentificationScreen> {
 
   void _startQuiz(List<Flashcard> flashcards) {
     if (flashcards.length < 4) {
-      // Show an alert if there are fewer than 4 flashcards
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -39,21 +38,18 @@ class _IdentificationScreenState extends ConsumerState<IdentificationScreen> {
     List<Map<String, dynamic>> questions = [];
 
     for (var flashcard in flashcards) {
-      // Create a question with the term and its definition
       questions.add({
         'question': flashcard.term,
         'correctAnswer': flashcard.definition,
       });
     }
 
-    // Shuffle the questions to randomize the order
     questions.shuffle();
 
-    // Navigate to the quiz page and pass the questions
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => IdentificationQuizPage(questions: questions), // Navigate to IdentificationQuizPage
+        builder: (context) => IdentificationQuizPage(questions: questions),
       ),
     );
   }
@@ -69,14 +65,13 @@ class _IdentificationScreenState extends ConsumerState<IdentificationScreen> {
       ),
       body: Column(
         children: [
-          // Dropdown for Subjects
           DropdownButton<Subject>(
             hint: const Text('Select Subject'),
             value: selectedSubject,
             onChanged: (newValue) {
               setState(() {
                 selectedSubject = newValue;
-                selectedFlashcardSet = null; // Reset flashcard set
+                selectedFlashcardSet = null;
               });
             },
             items: subjects.map((subject) {
@@ -105,7 +100,6 @@ class _IdentificationScreenState extends ConsumerState<IdentificationScreen> {
           const Spacer(),
           ElevatedButton(
             onPressed: () {
-              // Show dialog if subject is not selected
               if (selectedSubject == null) {
                 showDialog(
                   context: context,
@@ -123,7 +117,6 @@ class _IdentificationScreenState extends ConsumerState<IdentificationScreen> {
                 return;
               }
 
-              // Show dialog if flashcard set is not selected
               if (selectedFlashcardSet == null) {
                 showDialog(
                   context: context,
@@ -141,10 +134,8 @@ class _IdentificationScreenState extends ConsumerState<IdentificationScreen> {
                 return;
               }
 
-              // Get flashcards
               final flashcards = ref.watch(flashcardsProvider(selectedFlashcardSet!)) as List<Flashcard>;
 
-              // Start quiz
               _startQuiz(flashcards);
             },
             child: const Text('Start Quiz'),
