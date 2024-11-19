@@ -1,10 +1,13 @@
-import 'package:flashcard_project/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:math';
 import '../models.dart';
 import '../providers/subject_provider.dart';
 import '../providers/flashcardSet_provider.dart';
 import '../providers/flashcards_provider.dart';
+import '../tests pages/review_answers_page.dart';
+import '../tests pages/result_page.dart';
+import '../tests pages/multiple_choice_quiz_page.dart';
 
 class MultipleChoiceScreen extends ConsumerStatefulWidget {
   const MultipleChoiceScreen({super.key});
@@ -36,16 +39,25 @@ class _MultipleChoiceScreenState extends ConsumerState<MultipleChoiceScreen> {
       return;
     }
 
-    // Prepare quiz questions and choices
     List<Map<String, dynamic>> questions = [];
+
     for (var flashcard in flashcards) {
+      // Create a list to hold the answer choices
       List<String> choices = [flashcard.definition];
-      for (var otherFlashcard in flashcards) {
-        if (otherFlashcard != flashcard) {
-          choices.add(otherFlashcard.definition);
+
+      // Add 3 random incorrect answers
+      while (choices.length < 4) {
+        var randomFlashcard = flashcards[Random().nextInt(flashcards.length)];
+
+        if (randomFlashcard != flashcard && !choices.contains(randomFlashcard.definition)) {
+          choices.add(randomFlashcard.definition);
         }
       }
+
+      // Shuffle the choices to randomize the order
       choices.shuffle();
+
+      // Create a question with the term and the shuffled answer choices
       questions.add({
         'question': flashcard.term,
         'correctAnswer': flashcard.definition,
@@ -53,11 +65,14 @@ class _MultipleChoiceScreenState extends ConsumerState<MultipleChoiceScreen> {
       });
     }
 
-    // Navigate to the quiz page
+    // Shuffle the questions as well (optional, if needed)
+    questions.shuffle();
+
+    // Navigate to the quiz page and pass the questions
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => QuizPage(questions: questions),
+        builder: (context) => QuizPage(questions: questions), // Navigate to QuizPage
       ),
     );
   }
@@ -107,7 +122,6 @@ class _MultipleChoiceScreenState extends ConsumerState<MultipleChoiceScreen> {
               }).toList(),
             ),
           const Spacer(),
-          // Updated ElevatedButton with dialog error handling
           ElevatedButton(
             onPressed: () {
               // Show dialog if subject is not selected
@@ -148,170 +162,14 @@ class _MultipleChoiceScreenState extends ConsumerState<MultipleChoiceScreen> {
 
               // Get flashcards
               final flashcards = ref.watch(flashcardsProvider(selectedFlashcardSet!)) as List<Flashcard>;
-              // Show dialog if there are fewer than 4 flashcards
-              if (flashcards.isEmpty || flashcards.length < 4) {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Not Enough Flashcards'),
-                    content: const Text('You need at least 4 flashcards to start the quiz.'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('OK'),
-                      ),
-                    ],
-                  ),
-                );
-              } else {
-                _startQuiz(flashcards);
-              }
+
+              // Start quiz
+              _startQuiz(flashcards);
             },
             child: const Text('Start Quiz'),
           ),
-          const Spacer(),
+          const SizedBox(height: 16),
         ],
-      ),
-    );
-  }
-}
-
-class QuizPage extends StatefulWidget {
-  final List<Map<String, dynamic>> questions;
-
-  const QuizPage({super.key, required this.questions});
-
-  @override
-  _QuizPageState createState() => _QuizPageState();
-}
-
-class _QuizPageState extends State<QuizPage> {
-  Map<int, String?> selectedAnswers = {};
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Quiz'),
-      ),
-      body: ListView.builder(
-        itemCount: widget.questions.length,
-        itemBuilder: (context, index) {
-          final question = widget.questions[index];
-
-          return Card(
-            margin: const EdgeInsets.all(10),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Question Text
-                  Text(
-                    question['question'],
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  // Choices as RadioListTile
-                  ...question['choices'].map<Widget>((choice) {
-                    return RadioListTile<String>(
-                      title: Text(choice),
-                      value: choice,
-                      groupValue: selectedAnswers[index],
-                      onChanged: (value) {
-                        setState(() {
-                          selectedAnswers[index] = value; // Update selected answer
-                        });
-                      },
-                    );
-                  }).toList(),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          int score = 0;
-          for (int i = 0; i < widget.questions.length; i++) {
-            if (selectedAnswers[i] == widget.questions[i]['correctAnswer']) {
-              score++;
-            }
-          }
-
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ResultPage(
-                score: score,
-                totalQuestions: widget.questions.length,
-              ),
-            ),
-          );
-        },
-        child: const Icon(Icons.check),
-      ),
-    );
-  }
-}
-
-class ResultPage extends StatelessWidget {
-  final int score;
-  final int totalQuestions;
-
-  const ResultPage({super.key, required this.score, required this.totalQuestions});
-
-  @override
-  Widget build(BuildContext context) {
-    double percentage = (score / totalQuestions) * 100;
-    String result = percentage >= 70 ? 'Passed' : 'Failed';
-    Color resultColor = percentage >= 70 ? Colors.green : Colors.red;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Test Result'),
-        backgroundColor: Colors.blue,
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                'Your Score: $score/$totalQuestions',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: resultColor,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'You $result!',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: resultColor,
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HomePage()),
-                    (route) => false, // This clears all previous routes
-                  );
-                },
-                child: const Text('Back to Home'),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
