@@ -21,7 +21,7 @@ class _QuizScreenState extends State<QuizScreen> {
     {
       'title': 'Identification Exam',
       'color': const Color.fromARGB(232, 233, 172, 86),
-      'screen': IdentificationExamScreen(),
+      'screen': IdentificationScreen(),
     },
     {
       'title': 'Fill in the Blanks',

@@ -5,8 +5,6 @@ import '../models.dart';
 import '../providers/subject_provider.dart';
 import '../providers/flashcardSet_provider.dart';
 import '../providers/flashcards_provider.dart';
-import '../tests pages/review_answers_page.dart';
-import '../tests pages/result_page.dart';
 import '../tests pages/multiple_choice_quiz_page.dart';
 
 class MultipleChoiceScreen extends ConsumerStatefulWidget {

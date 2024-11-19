@@ -1,278 +1,156 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models.dart';
+import '../providers/subject_provider.dart';
+import '../providers/flashcardSet_provider.dart';
+import '../providers/flashcards_provider.dart';
+import '../tests pages/identification_quiz_page.dart';
 
-class IdentificationExamScreen extends StatefulWidget {
-  const IdentificationExamScreen({super.key});
+class IdentificationScreen extends ConsumerStatefulWidget {
+  const IdentificationScreen({super.key});
 
   @override
-  _IdentificationExamScreenState createState() =>
-      _IdentificationExamScreenState();
+  _IdentificationScreenState createState() => _IdentificationScreenState();
 }
 
-class _IdentificationExamScreenState extends State<IdentificationExamScreen> {
-  final List<Map<String, dynamic>> questions = [
-    {
-      'question': 'What animal is this?',
-      'correctAnswer': 'Lion',
-      'userAnswer': '',
-    },
-    {
-      'question': 'What is the name of this landmark?',
-      'correctAnswer': 'Eiffel Tower',
-      'userAnswer': '',
-    },
-    {
-      'question': 'Which country does this flag belong to?',
-      'correctAnswer': 'USA',
-      'userAnswer': '',
-    },
-  ];
+class _IdentificationScreenState extends ConsumerState<IdentificationScreen> {
+  Subject? selectedSubject;
+  FlashcardSet? selectedFlashcardSet;
 
-  int _currentQuestionIndex = 0;
-  final TextEditingController _controller = TextEditingController();
-
-  @override
-  void dispose() {
-    _controller.dispose(); // Dispose the controller when the widget is destroyed
-    super.dispose();
-  }
-
-  int _calculateScore() {
-    int score = 0;
-    for (var question in questions) {
-      if (question['userAnswer'].trim().toLowerCase() ==
-          question['correctAnswer'].trim().toLowerCase()) {
-        score++;
-      }
+  void _startQuiz(List<Flashcard> flashcards) {
+    if (flashcards.length < 4) {
+      // Show an alert if there are fewer than 4 flashcards
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Not Enough Flashcards'),
+          content: const Text('You need at least 4 flashcards to start the quiz.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
     }
-    return score;
-  }
 
-  void _submitAll() {
-    int score = _calculateScore();
+    List<Map<String, dynamic>> questions = [];
+
+    for (var flashcard in flashcards) {
+      // Create a question with the term and its definition
+      questions.add({
+        'question': flashcard.term,
+        'correctAnswer': flashcard.definition,
+      });
+    }
+
+    // Shuffle the questions to randomize the order
+    questions.shuffle();
+
+    // Navigate to the quiz page and pass the questions
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            ResultPage(score: score, totalQuestions: questions.length),
+        builder: (context) => IdentificationQuizPage(questions: questions), // Navigate to IdentificationQuizPage
       ),
     );
   }
 
-  void _nextQuestion() {
-    if (_currentQuestionIndex < questions.length - 1) {
-      setState(() {
-        _currentQuestionIndex++;
-        _controller.text = questions[_currentQuestionIndex]['userAnswer'];
-      });
-    }
-  }
-
-  void _previousQuestion() {
-    if (_currentQuestionIndex > 0) {
-      setState(() {
-        _currentQuestionIndex--;
-        _controller.text = questions[_currentQuestionIndex]['userAnswer'];
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final currentQuestion = questions[_currentQuestionIndex];
+    final subjects = ref.watch(subjectsProvider);
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-          color: Colors.white, // Set the back arrow color to white
-        ),
-        title: const Text(
-          'Identification Exam',
-          style: TextStyle(
-            color: Colors.white, // Set the title text color to white
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        title: const Text('Select Flashcards for Identification Quiz'),
         backgroundColor: Colors.green,
-        centerTitle: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            bottomLeft: Radius.circular(20),
-            bottomRight: Radius.circular(20),
-          ),
-        ),
       ),
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Removed the image, no longer used here
-                const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 8,
-                        offset: Offset(0, 4),
+          // Dropdown for Subjects
+          DropdownButton<Subject>(
+            hint: const Text('Select Subject'),
+            value: selectedSubject,
+            onChanged: (newValue) {
+              setState(() {
+                selectedSubject = newValue;
+                selectedFlashcardSet = null; // Reset flashcard set
+              });
+            },
+            items: subjects.map((subject) {
+              return DropdownMenuItem(
+                value: subject,
+                child: Text(subject.title),
+              );
+            }).toList(),
+          ),
+          if (selectedSubject != null)
+            DropdownButton<FlashcardSet>(
+              hint: const Text('Select Flashcard Set'),
+              value: selectedFlashcardSet,
+              onChanged: (newValue) {
+                setState(() {
+                  selectedFlashcardSet = newValue;
+                });
+              },
+              items: ref.watch(flashcardSetsProvider(selectedSubject!)).map((set) {
+                return DropdownMenuItem(
+                  value: set,
+                  child: Text(set.title),
+                );
+              }).toList(),
+            ),
+          const Spacer(),
+          ElevatedButton(
+            onPressed: () {
+              // Show dialog if subject is not selected
+              if (selectedSubject == null) {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Subject Not Selected'),
+                    content: const Text('Please select a subject before starting the quiz.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('OK'),
                       ),
                     ],
                   ),
-                  child: Column(
-                    children: [
-                      Text(
-                        currentQuestion['question'],
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: _controller,
-                        onChanged: (value) {
-                          currentQuestion['userAnswer'] = value;
-                        },
-                        decoration: const InputDecoration(
-                          labelText: 'Type your answer here',
-                          border: OutlineInputBorder(),
-                        ),
+                );
+                return;
+              }
+
+              // Show dialog if flashcard set is not selected
+              if (selectedFlashcardSet == null) {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Flashcard Set Not Selected'),
+                    content: const Text('Please select a flashcard set before starting the quiz.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('OK'),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      onPressed:
-                          _currentQuestionIndex > 0 ? _previousQuestion : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                      ),
-                      child: Text('Previous'),
-                    ),
-                    const SizedBox(width: 20),
-                    if (_currentQuestionIndex < questions.length - 1)
-                      ElevatedButton(
-                        onPressed: _nextQuestion,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                        ),
-                        child: Text('Next'),
-                      ),
-                    if (_currentQuestionIndex == questions.length - 1)
-                      ElevatedButton(
-                        onPressed: () => _submitAll(),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                        ),
-                        child: Text('Submit'),
-                      ),
-                  ],
-                ),
-              ],
-            ),
+                );
+                return;
+              }
+
+              // Get flashcards
+              final flashcards = ref.watch(flashcardsProvider(selectedFlashcardSet!)) as List<Flashcard>;
+
+              // Start quiz
+              _startQuiz(flashcards);
+            },
+            child: const Text('Start Quiz'),
           ),
-          // Add the progress bar at the bottom
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              children: [
-                LinearProgressIndicator(
-                  value:
-                      (_currentQuestionIndex + 1) / questions.length, // Progress
-                  backgroundColor: Colors.grey[300],
-                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Question ${_currentQuestionIndex + 1} of ${questions.length}',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ),
+          const SizedBox(height: 16),
         ],
-      ),
-    );
-  }
-}
-
-class ResultPage extends StatelessWidget {
-  final int score;
-  final int totalQuestions;
-
-  const ResultPage({super.key, required this.score, required this.totalQuestions});
-
-  @override
-  Widget build(BuildContext context) {
-    double percentage = (score / totalQuestions) * 100;
-    String result = percentage >= 70 ? 'Passed' : 'Failed';
-    Color resultColor = percentage >= 70 ? Colors.green : Colors.red;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Test Result'),
-        backgroundColor: Colors.blue,
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                'Your Score: $score/$totalQuestions',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: resultColor,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'You $result!',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: resultColor,
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
-                  textStyle: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                child: Text('Back to Home'),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

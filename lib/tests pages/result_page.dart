@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import '/quiz mode/multiplechoice.dart';
 import 'multiple_choice_quiz_page.dart';
 import '../pages/home_page.dart';
 import '../tests pages/review_answers_page.dart';
+import 'identification_quiz_page.dart';  // Import IdentificationQuizPage
 
 class ResultPage extends StatelessWidget {
   final int score;
   final int totalQuestions;
   final Map<int, String?> selectedAnswers;
   final List<Map<String, dynamic>> questions;
+  final String quizType;  // Add quizType parameter
 
   const ResultPage({
     super.key,
@@ -16,6 +17,7 @@ class ResultPage extends StatelessWidget {
     required this.totalQuestions,
     required this.selectedAnswers,
     required this.questions,
+    required this.quizType,  // Include quizType in the constructor
   });
 
   @override
@@ -28,58 +30,71 @@ class ResultPage extends StatelessWidget {
         automaticallyImplyLeading: false,
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'You scored $score out of $totalQuestions',
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Your score: ${percentage.toStringAsFixed(2)}%',
-              style: const TextStyle(fontSize: 20),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const HomePage(),
-                  ),
-                );
-              },
-              child: const Text('Back to Home'),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ReviewAnswersPage(
-                      selectedAnswers: selectedAnswers,
-                      questions: questions,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'You scored $score out of $totalQuestions',
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Your score: ${percentage.toStringAsFixed(2)}%',
+                style: const TextStyle(fontSize: 20),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const HomePage(),
                     ),
-                  ),
-                );
-              },
-              child: const Text('Review Answers'),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => QuizPage(questions: questions),
-                  ),
-                );
-              },
-              child: const Text('Retake Test'),
-            ),
-          ],
+                  );
+                },
+                child: const Text('Back to Home'),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ReviewAnswersPage(
+                        selectedAnswers: selectedAnswers,
+                        questions: questions,
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('Review Answers'),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  // Navigate to the correct quiz page based on quizType
+                  if (quizType == 'MultipleChoice') {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => QuizPage(questions: questions),
+                      ),
+                    );
+                  } else if (quizType == 'Identification') {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => IdentificationQuizPage(questions: questions),
+                      ),
+                    );
+                  }
+                },
+                child: const Text('Retake Test'),
+              ),
+            ],
+          ),
         ),
       ),
     );

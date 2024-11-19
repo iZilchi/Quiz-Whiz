@@ -33,10 +33,10 @@ class _QuizPageState extends State<QuizPage> {
   bool _isQuizComplete() {
     for (var i = 0; i < widget.questions.length; i++) {
       if (selectedAnswers[i] == null) {
-        return false; // A question has not been answered
+        return false;
       }
     }
-    return true; // All questions have been answered
+    return true;
   }
 
   @override
@@ -52,7 +52,6 @@ class _QuizPageState extends State<QuizPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // White container with question and choices
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -65,13 +64,11 @@ class _QuizPageState extends State<QuizPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Question Text
                   Text(
                     question['question'],
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  // Choices as RadioListTile
                   ...question['choices'].map<Widget>((choice) {
                     return RadioListTile<String>(
                       title: Text(choice),
@@ -79,7 +76,7 @@ class _QuizPageState extends State<QuizPage> {
                       groupValue: selectedAnswers[currentQuestionIndex],
                       onChanged: (value) {
                         setState(() {
-                          selectedAnswers[currentQuestionIndex] = value; // Update selected answer
+                          selectedAnswers[currentQuestionIndex] = value;
                         });
                       },
                     );
@@ -91,22 +88,17 @@ class _QuizPageState extends State<QuizPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Back Button
                 ElevatedButton(
                   onPressed: currentQuestionIndex > 0 ? _goToPreviousQuestion : null,
                   child: const Text('Back'),
                 ),
-                // Next Button
                 ElevatedButton(
-                  onPressed: currentQuestionIndex < widget.questions.length - 1
-                      ? _goToNextQuestion
-                      : null,
+                  onPressed: currentQuestionIndex < widget.questions.length - 1 ? _goToNextQuestion : null,
                   child: const Text('Next'),
                 ),
               ],
             ),
             const SizedBox(height: 20),
-            // Submit Button (Only visible when on the last question)
             if (currentQuestionIndex == widget.questions.length - 1)
               ElevatedButton(
                 onPressed: _isQuizComplete()
@@ -117,7 +109,6 @@ class _QuizPageState extends State<QuizPage> {
                             score++;
                           }
                         }
-
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -126,6 +117,7 @@ class _QuizPageState extends State<QuizPage> {
                               totalQuestions: widget.questions.length,
                               selectedAnswers: selectedAnswers,
                               questions: widget.questions,
+                              quizType: 'MultipleChoice',
                             ),
                           ),
                         );
