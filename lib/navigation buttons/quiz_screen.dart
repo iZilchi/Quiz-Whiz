@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-
-import '../quiz mode/fillintheblanks.dart';
 import '../quiz mode/identification.dart';
 import '../quiz mode/multiplechoice.dart';
 
@@ -22,12 +20,7 @@ class _QuizScreenState extends State<QuizScreen> {
       'title': 'Identification Exam',
       'color': const Color.fromARGB(232, 233, 172, 86),
       'screen': IdentificationScreen(),
-    },
-    {
-      'title': 'Fill in the Blanks',
-      'color': const Color.fromARGB(232, 233, 172, 86),
-      'screen': FillInTheBlanksScreen(),
-    },
+    }
   ];
 
   @override
