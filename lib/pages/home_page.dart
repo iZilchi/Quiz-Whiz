@@ -16,10 +16,10 @@ class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = [
-    HomeContent(),
-    QuizScreen(),
-    SubjectScreen(),
-    ProfileScreen(),
+    const HomeContent(),
+    const QuizScreen(),
+    const SubjectScreen(),
+    const ProfileScreen(),
   ];
 
   void _onItemTapped(int index) {

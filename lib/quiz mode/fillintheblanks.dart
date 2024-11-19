@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class FillInTheBlanksScreen extends StatefulWidget {
+  const FillInTheBlanksScreen({super.key});
+
   @override
   _FillInTheBlanksScreenState createState() => _FillInTheBlanksScreenState();
 }
@@ -25,7 +27,7 @@ class _FillInTheBlanksScreenState extends State<FillInTheBlanksScreen> {
   ];
 
   int currentQuestionIndex = 0;
-  TextEditingController _controller = TextEditingController();
+  final TextEditingController _controller = TextEditingController();
 
   void _submitAnswer() {
     if (currentQuestionIndex < questions.length - 1) {
@@ -70,19 +72,19 @@ class _FillInTheBlanksScreenState extends State<FillInTheBlanksScreen> {
 
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(80.0),
+        preferredSize: const Size.fromHeight(80.0),
         child: ClipRRect(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+          borderRadius: const BorderRadius.vertical(bottom: Radius.circular(30)),
           child: AppBar(
-            title: Text('Fill in the Blanks'),
+            title: const Text('Fill in the Blanks'),
             backgroundColor: Colors.green,
             centerTitle: true,
-            titleTextStyle: TextStyle(
+            titleTextStyle: const TextStyle(
               color: Colors.white,
               fontSize: 22,
               fontWeight: FontWeight.bold,
             ),
-            iconTheme: IconThemeData(color: Colors.white), // Set the back arrow to white
+            iconTheme: const IconThemeData(color: Colors.white), // Set the back arrow to white
           ),
         ),
       ),
@@ -96,18 +98,18 @@ class _FillInTheBlanksScreenState extends State<FillInTheBlanksScreen> {
               children: [
                 Text(
                   question['question'],
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 TextField(
                   controller: _controller,
                   decoration: InputDecoration(
                     labelText: 'Your Answer',
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                     suffixIcon: _controller.text.isNotEmpty
                         ? IconButton(
-                            icon: Icon(Icons.clear),
+                            icon: const Icon(Icons.clear),
                             onPressed: () {
                               setState(() {
                                 _controller.clear();
@@ -123,24 +125,24 @@ class _FillInTheBlanksScreenState extends State<FillInTheBlanksScreen> {
                     });
                   },
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center, // Center the buttons horizontally
                   children: [
                     ElevatedButton(
                       onPressed: currentQuestionIndex > 0 ? _goToPrevious : null,
-                      child: Text('Previous'),
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                      child: Text('Previous'),
                     ),
-                    SizedBox(width: 20), // Space between buttons
+                    const SizedBox(width: 20), // Space between buttons
                     ElevatedButton(
                       onPressed: _submitAnswer,
-                      child: Text(currentQuestionIndex < questions.length - 1 ? 'Next' : 'Submit'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: currentQuestionIndex < questions.length - 1
                             ? Colors.green
                             : Colors.blue,
                       ),
+                      child: Text(currentQuestionIndex < questions.length - 1 ? 'Next' : 'Submit'),
                     ),
                   ],
                 ),
@@ -155,12 +157,12 @@ class _FillInTheBlanksScreenState extends State<FillInTheBlanksScreen> {
                 LinearProgressIndicator(
                   value: (currentQuestionIndex + 1) / questions.length, // Calculate progress
                   backgroundColor: Colors.grey[300],
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Text(
                   'Question ${currentQuestionIndex + 1} of ${questions.length}',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -175,7 +177,7 @@ class ResultPage extends StatelessWidget {
   final int score;
   final int totalQuestions;
 
-  ResultPage({required this.score, required this.totalQuestions});
+  const ResultPage({super.key, required this.score, required this.totalQuestions});
 
   @override
   Widget build(BuildContext context) {
@@ -185,7 +187,7 @@ class ResultPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Test Result'),
+        title: const Text('Test Result'),
         backgroundColor: Colors.blue,
         centerTitle: true,
       ),
@@ -204,7 +206,7 @@ class ResultPage extends StatelessWidget {
                   color: resultColor,
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Text(
                 'You $result!',
                 style: TextStyle(
@@ -213,20 +215,20 @@ class ResultPage extends StatelessWidget {
                   color: resultColor,
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                child: Text('Back to Home'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
                   ),
-                  padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
-                  textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
+                child: Text('Back to Home'),
               ),
             ],
           ),

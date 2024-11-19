@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models.dart';
 
-// StateNotifier to manage a list of subjects
 class SubjectsNotifier extends StateNotifier<List<Subject>> {
   SubjectsNotifier() : super([]);
 

@@ -1,4 +1,3 @@
-// screens/quiz_screen.dart
 import 'package:flutter/material.dart';
 
 import '../quiz mode/fillintheblanks.dart';
@@ -13,7 +12,6 @@ class QuizScreen extends StatefulWidget {
 }
 
 class _QuizScreenState extends State<QuizScreen> {
-  // Example questions and answers
   final List<Map<String, dynamic>> options = [
     {
       'title': 'Multiple Choice',
@@ -49,7 +47,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 );
               },
               child: Card(
-                margin: EdgeInsets.symmetric(vertical: 10),
+                margin: const EdgeInsets.symmetric(vertical: 10),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
                 ),
@@ -59,8 +57,8 @@ class _QuizScreenState extends State<QuizScreen> {
                   child: Center(
                     child: Text(
                       option['title'],
-                      style: TextStyle(
-                        fontFamily: 'Satoshi', // Use Satoshi font
+                      style: const TextStyle(
+                        fontFamily: 'Satoshi',
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,

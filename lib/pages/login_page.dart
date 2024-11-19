@@ -89,7 +89,7 @@ class LoginPage extends StatelessWidget {
                                 // Navigate to SignUpPage on "Sign Up now" click
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => SignUpPage()),
+                                  MaterialPageRoute(builder: (context) => const SignUpPage()),
                                 );
                               },
                               child: const Text(

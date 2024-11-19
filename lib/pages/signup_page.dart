@@ -72,7 +72,7 @@ class SignUpPage extends StatelessWidget {
                             // Navigate to HomePage on sign up
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => HomePage()),
+                              MaterialPageRoute(builder: (context) => const HomePage()),
                             );
                           },
                           style: ElevatedButton.styleFrom(

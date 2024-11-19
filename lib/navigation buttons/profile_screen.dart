@@ -33,7 +33,7 @@ class ProfileScreen extends StatelessWidget {
 
   // Function to show the Account Settings pop-up with extra features
   void _showAccountSettingsDialog(BuildContext context) {
-    TextEditingController _usernameController = TextEditingController();
+    TextEditingController usernameController = TextEditingController();
 
     showDialog(
       context: context,
@@ -50,7 +50,7 @@ class ProfileScreen extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 TextField(
-                  controller: _usernameController,
+                  controller: usernameController,
                   decoration: const InputDecoration(
                     labelText: 'New Username',
                     hintText: 'Enter your new username',
@@ -63,8 +63,8 @@ class ProfileScreen extends StatelessWidget {
                   'Change Email',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                TextField(
-                  decoration: const InputDecoration(
+                const TextField(
+                  decoration: InputDecoration(
                     labelText: 'New Email',
                     hintText: 'Enter your new email',
                   ),
@@ -76,9 +76,9 @@ class ProfileScreen extends StatelessWidget {
                   'Change Password',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                TextField(
+                const TextField(
                   obscureText: true,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'New Password',
                     hintText: 'Enter your new password',
                   ),
@@ -150,7 +150,7 @@ class ProfileScreen extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {
-                String newUsername = _usernameController.text;
+                String newUsername = usernameController.text;
                 if (newUsername.isNotEmpty) {
                   Navigator.pop(context); // Close the dialog
                   _showDialog(context, 'Username Updated', 'Your username has been updated to: $newUsername');

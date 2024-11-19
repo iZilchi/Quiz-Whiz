@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class IdentificationExamScreen extends StatefulWidget {
+  const IdentificationExamScreen({super.key});
+
   @override
   _IdentificationExamScreenState createState() =>
       _IdentificationExamScreenState();
@@ -26,7 +28,7 @@ class _IdentificationExamScreenState extends State<IdentificationExamScreen> {
   ];
 
   int _currentQuestionIndex = 0;
-  TextEditingController _controller = TextEditingController();
+  final TextEditingController _controller = TextEditingController();
 
   @override
   void dispose() {
@@ -81,11 +83,11 @@ class _IdentificationExamScreenState extends State<IdentificationExamScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
           color: Colors.white, // Set the back arrow color to white
         ),
-        title: Text(
+        title: const Text(
           'Identification Exam',
           style: TextStyle(
             color: Colors.white, // Set the title text color to white
@@ -95,7 +97,7 @@ class _IdentificationExamScreenState extends State<IdentificationExamScreen> {
         ),
         backgroundColor: Colors.green,
         centerTitle: true,
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
             bottomLeft: Radius.circular(20),
             bottomRight: Radius.circular(20),
@@ -111,13 +113,13 @@ class _IdentificationExamScreenState extends State<IdentificationExamScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Removed the image, no longer used here
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Container(
-                  padding: EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(
                         color: Colors.black26,
                         blurRadius: 8,
@@ -129,20 +131,20 @@ class _IdentificationExamScreenState extends State<IdentificationExamScreen> {
                     children: [
                       Text(
                         currentQuestion['question'],
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Colors.black87,
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       TextField(
                         controller: _controller,
                         onChanged: (value) {
                           currentQuestion['userAnswer'] = value;
                         },
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Type your answer here',
                           border: OutlineInputBorder(),
                         ),
@@ -150,34 +152,34 @@ class _IdentificationExamScreenState extends State<IdentificationExamScreen> {
                     ],
                   ),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton(
                       onPressed:
                           _currentQuestionIndex > 0 ? _previousQuestion : null,
-                      child: Text('Previous'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                       ),
+                      child: Text('Previous'),
                     ),
-                    SizedBox(width: 20),
+                    const SizedBox(width: 20),
                     if (_currentQuestionIndex < questions.length - 1)
                       ElevatedButton(
                         onPressed: _nextQuestion,
-                        child: Text('Next'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                         ),
+                        child: Text('Next'),
                       ),
                     if (_currentQuestionIndex == questions.length - 1)
                       ElevatedButton(
                         onPressed: () => _submitAll(),
-                        child: Text('Submit'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                         ),
+                        child: Text('Submit'),
                       ),
                   ],
                 ),
@@ -193,12 +195,12 @@ class _IdentificationExamScreenState extends State<IdentificationExamScreen> {
                   value:
                       (_currentQuestionIndex + 1) / questions.length, // Progress
                   backgroundColor: Colors.grey[300],
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Text(
                   'Question ${_currentQuestionIndex + 1} of ${questions.length}',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -213,7 +215,7 @@ class ResultPage extends StatelessWidget {
   final int score;
   final int totalQuestions;
 
-  ResultPage({required this.score, required this.totalQuestions});
+  const ResultPage({super.key, required this.score, required this.totalQuestions});
 
   @override
   Widget build(BuildContext context) {
@@ -223,7 +225,7 @@ class ResultPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Test Result'),
+        title: const Text('Test Result'),
         backgroundColor: Colors.blue,
         centerTitle: true,
       ),
@@ -242,7 +244,7 @@ class ResultPage extends StatelessWidget {
                   color: resultColor,
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Text(
                 'You $result!',
                 style: TextStyle(
@@ -251,22 +253,22 @@ class ResultPage extends StatelessWidget {
                   color: resultColor,
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                child: Text('Back to Home'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
                   ),
                   padding:
-                      EdgeInsets.symmetric(vertical: 15, horizontal: 30),
-                  textStyle: TextStyle(
+                      const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                  textStyle: const TextStyle(
                       fontSize: 16, fontWeight: FontWeight.bold),
                 ),
+                child: Text('Back to Home'),
               ),
             ],
           ),

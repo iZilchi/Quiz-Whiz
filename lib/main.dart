@@ -14,6 +14,8 @@ void main() {
 }
 
 class QuizWhizApp extends StatelessWidget {
+  const QuizWhizApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -22,11 +24,11 @@ class QuizWhizApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialRoute: '/login',
       routes: {
-        '/login': (context) => LoginPage(),
-        '/home': (context) => HomePage(),
-        '/quiz': (context) => QuizScreen(),
-        '/subjects': (context) => SubjectScreen(),
-        '/profile': (context) => ProfileScreen(),
+        '/login': (context) => const LoginPage(),
+        '/home': (context) => const HomePage(),
+        '/quiz': (context) => const QuizScreen(),
+        '/subjects': (context) => const SubjectScreen(),
+        '/profile': (context) => const ProfileScreen(),
       },
     );
   }

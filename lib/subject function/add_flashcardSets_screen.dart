@@ -16,7 +16,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
     final flashcardSets = ref.watch(flashcardSetsProvider(subject)); 
     final hoverIndex = ref.watch(hoverIndexProvider); // Watch the flashcard sets for this subject
 
-    void _addFlashcardSet() {
+    void addFlashcardSet() {
       TextEditingController flashcardSetController = TextEditingController();
 
       showDialog(
@@ -108,7 +108,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
         backgroundColor: Colors.grey[200],
       ),
       body: flashcardSets.isEmpty
-          ? Center(child: Text('No flashcard sets created yet.'))
+          ? const Center(child: Text('No flashcard sets created yet.'))
           : Padding(
               padding: const EdgeInsets.all(16.0),
               child: GridView.builder(
@@ -181,7 +181,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
               ),
           ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addFlashcardSet,
+        onPressed: addFlashcardSet,
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),
         child: const Icon(Icons.add),
       ),

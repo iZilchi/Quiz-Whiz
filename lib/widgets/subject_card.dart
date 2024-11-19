@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class SubjectCard extends StatelessWidget {
+  const SubjectCard({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -13,19 +15,16 @@ class SubjectCard extends StatelessWidget {
         height: 120,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          image: DecorationImage(
-            image: AssetImage('assets/subject_image.png'),
-            fit: BoxFit.cover,
-          ),
+          // Remove the image decoration
         ),
-        child: Center(
+        child: const Center(
           child: Text(
             'Subject Name',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: const Color.fromARGB(255, 0, 0, 0),
+              color: Color.fromARGB(255, 0, 0, 0),
             ),
           ),
         ),
