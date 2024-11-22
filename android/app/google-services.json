@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "466662634867",
+    "project_id": "quiz-whiz-a7493",
+    "storage_bucket": "quiz-whiz-a7493.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:466662634867:android:dbb201c2375a36d15e8106",
+        "android_client_info": {
+          "package_name": "com.quizwhiz.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAw0WRtGFpFHqLvHZxo1qDk3BorWPZY-ew"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

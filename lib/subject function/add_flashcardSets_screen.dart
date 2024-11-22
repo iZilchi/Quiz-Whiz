@@ -2,7 +2,7 @@ import 'package:flashcard_project/subject%20function/add_flashcards_screen.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models.dart';
-import '../providers/flashcardSet_provider.dart';  // Import the provider
+import '../providers/flashcardSet_provider.dart';
 
 final hoverIndexProvider = StateProvider<int?>((ref) => null);
 
@@ -13,11 +13,11 @@ class AddFlashcardSetScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final flashcardSets = ref.watch(flashcardSetsProvider(subject)); 
-    final hoverIndex = ref.watch(hoverIndexProvider); // Watch the flashcard sets for this subject
+    final flashcardSets = ref.watch(flashcardSetsProvider(subject.documentId)); // Pass subject ID
+    final hoverIndex = ref.watch(hoverIndexProvider);
 
     void addFlashcardSet() {
-      TextEditingController flashcardSetController = TextEditingController();
+      final flashcardSetController = TextEditingController();
 
       showDialog(
         context: context,
@@ -33,7 +33,9 @@ class AddFlashcardSetScreen extends ConsumerWidget {
                 onPressed: () {
                   final setName = flashcardSetController.text.trim();
                   if (setName.isNotEmpty) {
-                    ref.read(flashcardSetsProvider(subject).notifier).addFlashcardSet(setName);  // Add Flashcard Set
+                    ref
+                        .read(flashcardSetsProvider(subject.documentId).notifier)
+                        .addFlashcardSet(setName);
                     Navigator.pop(context);
                   }
                 },
@@ -46,7 +48,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
     }
 
     void editFlashcardSet(int index) {
-    TextEditingController flashcardSetController = TextEditingController();
+      final flashcardSetController = TextEditingController();
 
       showDialog(
         context: context,
@@ -61,8 +63,10 @@ class AddFlashcardSetScreen extends ConsumerWidget {
               TextButton(
                 onPressed: () {
                   final setName = flashcardSetController.text.trim();
-                    if (setName.isNotEmpty) {
-                      ref.read(flashcardSetsProvider(subject).notifier).editFlashcardSet(index, setName);  // Use Riverpod to add subject
+                  if (setName.isNotEmpty) {
+                    ref
+                        .read(flashcardSetsProvider(subject.documentId).notifier)
+                        .editFlashcardSet(index, setName);
                     Navigator.pop(context);
                   }
                 },
@@ -80,11 +84,14 @@ class AddFlashcardSetScreen extends ConsumerWidget {
         builder: (context) {
           return AlertDialog(
             title: const Text('Delete Flashcard Set'),
-            content: const Text('Deleting this flashcard set will also delete the flashcards created inside it.'),
+            content: const Text(
+                'Deleting this flashcard set will also delete the flashcards created inside it.'),
             actions: [
               TextButton(
                 onPressed: () {
-                  ref.read(flashcardSetsProvider(subject).notifier).deleteFlashcardSet(index);
+                  ref
+                      .read(flashcardSetsProvider(subject.documentId).notifier)
+                      .deleteFlashcardSet(index);
                   Navigator.pop(context);
                 },
                 child: const Text('Delete'),
@@ -129,7 +136,8 @@ class AddFlashcardSetScreen extends ConsumerWidget {
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => AddFlashcardScreen(flashcardSet: flashcardSets[index]),
+                              builder: (context) => AddFlashcardScreen(
+                                  flashcardSet: flashcardSets[index]),
                             ),
                           ),
                           child: Container(
@@ -148,7 +156,8 @@ class AddFlashcardSetScreen extends ConsumerWidget {
                               child: Text(
                                 flashcardSets[index].title,
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
                               ),
                             ),
                           ),
@@ -160,15 +169,17 @@ class AddFlashcardSetScreen extends ConsumerWidget {
                             child: Row(
                               children: [
                                 IconButton(
-                                  icon: const Icon(Icons.edit, color: Colors.blue),
+                                  icon:
+                                      const Icon(Icons.edit, color: Colors.blue),
                                   onPressed: () {
-                                    editFlashcardSet(index); 
+                                    editFlashcardSet(index);
                                   },
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  icon: const Icon(Icons.delete,
+                                      color: Colors.red),
                                   onPressed: () {
-                                    deleteFlashcardSet(index); 
+                                    deleteFlashcardSet(index);
                                   },
                                 ),
                               ],
@@ -179,7 +190,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
                   );
                 },
               ),
-          ),
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: addFlashcardSet,
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),

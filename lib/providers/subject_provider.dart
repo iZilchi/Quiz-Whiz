@@ -1,22 +1,46 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models.dart';
+import '../firebase/firestore_services.dart'; // Import FirestoreService
 
 class SubjectsNotifier extends StateNotifier<List<Subject>> {
-  SubjectsNotifier() : super([]);
+  final FirestoreService _firestoreService = FirestoreService();
 
-  void addSubject(String title) {
-    state = [...state, Subject(title)];
+  SubjectsNotifier() : super([]) {
+    // Initialize subjects from Firestore
+    _initializeSubjects();
   }
 
-  void editSubject(int index, String newTitle) {
+  // READ subjects from Firestore
+  Future<void> _initializeSubjects() async {
+    _firestoreService.getSubjects().listen((subjects) {
+      state = subjects;
+    });
+  }
+
+  // CREATE a new subject
+  Future<void> addSubject(String title) async {
+    final newSubject = Subject(title, ''); // documentId will be assigned by Firestore
+    state = [...state, newSubject]; // Optimistic update
+    await _firestoreService.addSubject(newSubject);
+  }
+
+  // UPDATE an existing subject
+  Future<void> editSubject(int index, String newTitle) async {
+    final subjectId = state[index].documentId; // Use the document ID for update
     final updatedSubjects = List<Subject>.from(state);
     updatedSubjects[index].title = newTitle;
-    state = updatedSubjects;
+
+    state = updatedSubjects; // Optimistic update
+    await _firestoreService.updateSubject(subjectId, newTitle);
   }
 
-  void deleteSubject(int index) {
+  // DELETE a subject
+  Future<void> deleteSubject(int index) async {
+    final subjectId = state[index].documentId; // Use the document ID for deletion
     final updatedSubjects = List<Subject>.from(state)..removeAt(index);
-    state = updatedSubjects;
+
+    state = updatedSubjects; // Optimistic update
+    await _firestoreService.deleteSubject(subjectId);
   }
 }
 

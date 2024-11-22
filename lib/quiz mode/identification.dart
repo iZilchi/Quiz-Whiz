@@ -71,7 +71,7 @@ class _IdentificationScreenState extends ConsumerState<IdentificationScreen> {
             onChanged: (newValue) {
               setState(() {
                 selectedSubject = newValue;
-                selectedFlashcardSet = null;
+                selectedFlashcardSet = null; // Reset the selected flashcard set when the subject changes
               });
             },
             items: subjects.map((subject) {
@@ -82,20 +82,28 @@ class _IdentificationScreenState extends ConsumerState<IdentificationScreen> {
             }).toList(),
           ),
           if (selectedSubject != null)
-            DropdownButton<FlashcardSet>(
-              hint: const Text('Select Flashcard Set'),
-              value: selectedFlashcardSet,
-              onChanged: (newValue) {
-                setState(() {
-                  selectedFlashcardSet = newValue;
-                });
-              },
-              items: ref.watch(flashcardSetsProvider(selectedSubject!)).map((set) {
-                return DropdownMenuItem(
-                  value: set,
-                  child: Text(set.title),
+            Consumer(
+              builder: (context, ref, child) {
+                final flashcardSets = ref.watch(
+                  flashcardSetsProvider(selectedSubject!.documentId), // Pass the subject ID, not the object
                 );
-              }).toList(),
+
+                return DropdownButton<FlashcardSet>(
+                  hint: const Text('Select Flashcard Set'),
+                  value: selectedFlashcardSet,
+                  onChanged: (newValue) {
+                    setState(() {
+                      selectedFlashcardSet = newValue;
+                    });
+                  },
+                  items: flashcardSets.map((set) {
+                    return DropdownMenuItem(
+                      value: set,
+                      child: Text(set.title),
+                    );
+                  }).toList(),
+                );
+              },
             ),
           const Spacer(),
           ElevatedButton(
@@ -134,7 +142,9 @@ class _IdentificationScreenState extends ConsumerState<IdentificationScreen> {
                 return;
               }
 
-              final flashcards = ref.watch(flashcardsProvider(selectedFlashcardSet!)) as List<Flashcard>;
+              final flashcards = ref.watch(
+                flashcardsProvider(selectedFlashcardSet!), // Pass the entire FlashcardSet object
+              ) as List<Flashcard>;
 
               _startQuiz(flashcards);
             },

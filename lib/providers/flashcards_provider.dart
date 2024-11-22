@@ -1,57 +1,80 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models.dart';
-import 'dart:math';
 
-// StateNotifier to manage flashcards for a flashcard set
 class FlashcardsNotifier extends StateNotifier<List<Flashcard>> {
-  List<Flashcard> _originalFlashcardsOrder = [];
-  bool _isShuffled = false;
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final String subjectId;
+  final String flashcardSetId;
 
-  FlashcardsNotifier() : super([]);
-
-  void addFlashcard(String term, String definition) {
-    final newFlashcard = Flashcard(term, definition);
-    _originalFlashcardsOrder.add(newFlashcard);  // Add to the original order
-    state = List.from(_originalFlashcardsOrder);  // Ensure state reflects the original order
+  FlashcardsNotifier({required this.subjectId, required this.flashcardSetId}) : super([]) {
+    _fetchFlashcards();
   }
 
-  void editFlashcard(int index, String newTerm, String newDefinition) {
-    final updatedFlashcards = List<Flashcard>.from(state);
-    updatedFlashcards[index].term = newTerm;
-    updatedFlashcards[index].definition = newDefinition;
-    _originalFlashcardsOrder = updatedFlashcards;
-    state = updatedFlashcards;
+  // Fetch flashcards from Firestore
+  void _fetchFlashcards() {
+    _db
+        .collection('subjects')
+        .doc(subjectId)
+        .collection('flashcardSets')
+        .doc(flashcardSetId)
+        .collection('flashcards')
+        .snapshots()
+        .listen((snapshot) {
+      state = snapshot.docs.map((doc) {
+        final data = doc.data();
+        return Flashcard(data['term'], data['definition'], doc.id);
+      }).toList();
+    });
   }
 
-  void deleteFlashcard(int index) {
-    final updatedFlashcards = List<Flashcard>.from(state)..removeAt(index);
-    state = updatedFlashcards;
+  // CREATE
+  Future<void> addFlashcard(String term, String definition) async {
+    final newFlashcard = Flashcard(term, definition, '');
+
+    //add to the state
+    state = [...state, newFlashcard];
+
+    //add to database
+    await _db
+        .collection('subjects')
+        .doc(subjectId)
+        .collection('flashcardSets')
+        .doc(flashcardSetId)
+        .collection('flashcards')
+        .add({'term': term, 'definition': definition});
   }
 
-  // Shuffle the flashcards
-  void shuffle() {
-    final random = Random();
-    final shuffled = List<Flashcard>.from(_originalFlashcardsOrder);  // Copy original order
-    shuffled.shuffle(random);  // Shuffle the list
-    state = shuffled;  // Update the state with the shuffled list
-    _isShuffled = true;  // Mark the flashcards as shuffled
+  // UPDATE
+  Future<void> editFlashcard(String flashcardId, String newTerm, String newDefinition) async {
+    await _db
+        .collection('subjects')
+        .doc(subjectId)
+        .collection('flashcardSets')
+        .doc(flashcardSetId)
+        .collection('flashcards')
+        .doc(flashcardId)
+        .update({'term': newTerm, 'definition': newDefinition});
   }
 
-  // Restore the original order
-  void restoreOrder() {
-    state = List.from(_originalFlashcardsOrder);  // Restore original order
-    _isShuffled = false;  // Mark the flashcards as not shuffled
+  // DELETE
+  Future<void> deleteFlashcard(String flashcardId) async {
+    await _db
+        .collection('subjects')
+        .doc(subjectId)
+        .collection('flashcardSets')
+        .doc(flashcardSetId)
+        .collection('flashcards')
+        .doc(flashcardId)
+        .delete();
   }
-
-  bool get isShuffled => _isShuffled;  // Getter to check if shuffled
 }
 
-
+// Provider for flashcards with Firestore integration
 final flashcardsProvider = StateNotifierProvider.family<FlashcardsNotifier, List<Flashcard>, FlashcardSet>(
-  (ref, flashcardSet) => FlashcardsNotifier(),
+  (ref, flashcardSet) => FlashcardsNotifier(
+    subjectId: flashcardSet.flashcardSetSubjectId, // Ensure `flashcardSet` has `subjectId`
+    flashcardSetId: flashcardSet.documentId,   // Use `flashcardSet.documentId` for the specific flashcard set
+  ),
 );
 
-final isShuffledProvider = StateProvider.family<bool, FlashcardSet>((ref, flashcardSet) {
-  final flashcardsNotifier = ref.watch(flashcardsProvider(flashcardSet).notifier);
-  return flashcardsNotifier.isShuffled;
-});

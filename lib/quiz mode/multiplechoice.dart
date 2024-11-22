@@ -103,7 +103,7 @@ class _MultipleChoiceScreenState extends ConsumerState<MultipleChoiceScreen> {
                   selectedFlashcardSet = newValue;
                 });
               },
-              items: ref.watch(flashcardSetsProvider(selectedSubject!)).map((set) {
+              items: ref.watch(flashcardSetsProvider(selectedSubject!.documentId)).map((set) {
                 return DropdownMenuItem(
                   value: set,
                   child: Text(set.title),
@@ -113,7 +113,6 @@ class _MultipleChoiceScreenState extends ConsumerState<MultipleChoiceScreen> {
           const Spacer(),
           ElevatedButton(
             onPressed: () {
-
               if (selectedSubject == null) {
                 showDialog(
                   context: context,
@@ -148,7 +147,9 @@ class _MultipleChoiceScreenState extends ConsumerState<MultipleChoiceScreen> {
                 return;
               }
 
-              final flashcards = ref.watch(flashcardsProvider(selectedFlashcardSet!)) as List<Flashcard>;
+              final flashcards = ref.watch(
+                flashcardsProvider(selectedFlashcardSet!), // Pass the entire FlashcardSet object
+              ) as List<Flashcard>;
 
               _startQuiz(flashcards);
             },

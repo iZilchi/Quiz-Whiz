@@ -17,7 +17,7 @@ class AddFlashcardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final flashcards = ref.watch(flashcardsProvider(flashcardSet)); // Watch the flashcards
     final currentFlashcardIndex = ref.watch(currentFlashcardIndexProvider);
-    final isShuffled = ref.watch(isShuffledProvider(flashcardSet));
+    // final isShuffled = ref.watch(isShuffledProvider(flashcardSet));
 
     void addFlashcard() {
       TextEditingController termController = TextEditingController();
@@ -98,7 +98,7 @@ class AddFlashcardScreen extends ConsumerWidget {
                   if (updatedTerm.isNotEmpty && updatedDefinition.isNotEmpty) {
                     ref
                         .read(flashcardsProvider(flashcardSet).notifier)
-                        .editFlashcard(index, updatedTerm, updatedDefinition);
+                        .editFlashcard(flashcard.documentId, updatedTerm, updatedDefinition);
                   }
 
                   Navigator.pop(context); // Close the dialog
@@ -119,8 +119,10 @@ class AddFlashcardScreen extends ConsumerWidget {
       final flashcards = ref.read(flashcardsProvider(flashcardSet));
       
       if (index >= 0 && index < flashcards.length) {
+        //get flashcard id
+        final flashcardId = flashcards[index].documentId;
         // Remove the flashcard
-        ref.read(flashcardsProvider(flashcardSet).notifier).deleteFlashcard(index);
+        ref.read(flashcardsProvider(flashcardSet).notifier).deleteFlashcard(flashcardId);
         
         // Adjust the current flashcard index
         final newFlashcardCount = flashcards.length - 1;
@@ -149,17 +151,17 @@ class AddFlashcardScreen extends ConsumerWidget {
     }
 
     // Function to shuffle flashcards
-    void toggleShuffle() {
-      if (isShuffled) {
-        // If currently shuffled, restore the original order
-        ref.read(flashcardsProvider(flashcardSet).notifier).restoreOrder();
-      } else {
-        // If not shuffled, shuffle the flashcards
-        ref.read(flashcardsProvider(flashcardSet).notifier).shuffle();
-      }
-      // Toggle shuffle state
-      ref.read(isShuffledProvider(flashcardSet).notifier).state = !isShuffled;
-    }
+    // void toggleShuffle() {
+      // if (isShuffled) {
+      //   // If currently shuffled, restore the original order
+      //   ref.read(flashcardsProvider(flashcardSet).notifier).restoreOrder();
+      // } else {
+      //   // If not shuffled, shuffle the flashcards
+      //   ref.read(flashcardsProvider(flashcardSet).notifier).shuffle();
+      // }
+      // // Toggle shuffle state
+      // ref.read(isShuffledProvider(flashcardSet).notifier).state = !isShuffled;
+    // }
 
     return Scaffold(
       backgroundColor: Colors.grey[200],
@@ -210,13 +212,13 @@ class AddFlashcardScreen extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            IconButton(
-                              icon: Icon(
-                                isShuffled ? Icons.shuffle_on : Icons.shuffle,
-                                color: Colors.orange,
-                              ),
-                              onPressed: toggleShuffle,
-                            ),
+                            // IconButton(
+                            //   icon: Icon(
+                            //     isShuffled ? Icons.shuffle_on : Icons.shuffle,
+                            //     color: Colors.orange,
+                            //   ),
+                            //   onPressed: toggleShuffle,
+                            // ),
                             IconButton(
                               icon: const Icon(Icons.edit, color: Colors.blue),
                               onPressed: () {
