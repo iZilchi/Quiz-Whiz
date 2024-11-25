@@ -7,7 +7,8 @@ import '../providers/flashcards_provider.dart';
 import '../tests pages/identification_quiz_page.dart';
 
 class IdentificationScreen extends ConsumerStatefulWidget {
-  const IdentificationScreen({super.key});
+  final String uid;
+  const IdentificationScreen({super.key, required this.uid});
 
   @override
   _IdentificationScreenState createState() => _IdentificationScreenState();
@@ -56,7 +57,7 @@ class _IdentificationScreenState extends ConsumerState<IdentificationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final subjects = ref.watch(subjectsProvider);
+    final subjects = ref.watch(subjectsProvider(widget.uid));
 
     return Scaffold(
       appBar: AppBar(

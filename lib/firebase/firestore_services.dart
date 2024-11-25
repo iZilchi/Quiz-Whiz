@@ -4,11 +4,70 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
+  //ACCOUNT CREATE USERNAME
+  // Create or initialize a user document
+  Future<void> initializeUser(String uid, String email) async {
+    try {
+      final userDoc = _db.collection('users').doc(uid);
+      final docSnapshot = await userDoc.get();
+
+      if (!docSnapshot.exists) {
+        // Create a new user document with default fields
+        await userDoc.set({
+          'email': email,
+          'username': 'guest', // Default username
+        });
+      }
+    } catch (e) {
+      throw Exception('Error initializing user: $e');
+    }
+  }
+  
+  //ACCOUNT UPDATE
+  Future<void> updateUsername(String uid, String newUsername) async {
+    try {
+      final userDoc = _db.collection('users').doc(uid);
+      final docSnapshot = await userDoc.get();
+
+      if (docSnapshot.exists) {
+        await userDoc.update({'username': newUsername});
+      } else {
+        throw Exception('User document does not exist.');
+      }
+    } catch (e) {
+      throw Exception('Error updating username: $e');
+    }
+  }
+
+  // READ ACCOUNT USERNAME AND EMAIL
+  Future<Map<String, String>> getUserDetails(String uid) async {
+    try {
+      final userDoc = await _db.collection('users').doc(uid).get();
+
+      if (userDoc.exists) {
+        final data = userDoc.data()!;
+        return {
+          'username': data['username'] ?? 'guest',
+          'email': data['email'] ?? 'No email available',
+        };
+      } else {
+        throw Exception('User document does not exist.');
+      }
+    } catch (e) {
+      throw Exception('Error retrieving user details: $e');
+    }
+  }
+  
+
+  
   // SUBJECT CRUD
 
   // CREATE
-  Future<void> addSubject(Subject subject) async {
-    await _db.collection('subjects').add({'title': subject.title});
+  Future<void> addSubject(String uid, Subject subject) async {
+    await _db.collection('subjects').add({
+      'title': subject.title,
+      'uid': uid, // Associate with user ID
+    });
   }
 
   // DELETE
@@ -22,22 +81,29 @@ class FirestoreService {
   }
 
   // READ
-  Stream<List<Subject>> getSubjects() {
-    return _db.collection('subjects').snapshots().map((snapshot) => snapshot.docs.map((doc) {
-      final data = doc.data();
-      return Subject(data['title'], doc.id); // Store document ID along with title
-    }).toList());
-  }
+  Stream<List<Subject>> getSubjects(String uid) {
+  return _db
+      .collection('subjects')
+      .where('uid', isEqualTo: uid) // Filter by user ID
+      .snapshots()
+      .map((snapshot) => snapshot.docs.map((doc) {
+            final data = doc.data();
+            return Subject(data['title'], doc.id);
+          }).toList());
+}
 
   // FLASHCARD SET CRUD
 
   // CREATE
-  Future<void> addFlashcardSet(String subjectId, FlashcardSet flashcardSet) async {
+  Future<void> addFlashcardSet(String uid, String subjectId, FlashcardSet flashcardSet) async {
     await _db
         .collection('subjects')
         .doc(subjectId)
         .collection('flashcardSets')
-        .add({'title': flashcardSet.title});
+        .add({
+      'title': flashcardSet.title,
+      'uid': uid, // Associate with user ID
+    });
   }
 
   // DELETE
@@ -61,33 +127,38 @@ class FirestoreService {
   }
 
   // READ
-  Stream<List<FlashcardSet>> getFlashcardSets(String subjectId) {
-  return _db
-      .collection('subjects')
-      .doc(subjectId)
-      .collection('flashcardSets')
-      .snapshots()
-      .map((snapshot) => snapshot.docs.map((doc) {
-            final data = doc.data();
-            return FlashcardSet(
-              data['title'],         // Title of the flashcard set
-              doc.id,                // Document ID of the flashcard set
-              subjectId,             // The subjectId associated with this flashcard set
-            );
-          }).toList());
-}
+  Stream<List<FlashcardSet>> getFlashcardSets(String uid, String subjectId) {
+    return _db
+        .collection('subjects')
+        .doc(subjectId)
+        .collection('flashcardSets')
+        .where('uid', isEqualTo: uid) // Filter by user ID
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) {
+              final data = doc.data();
+              return FlashcardSet(
+                data['title'],         // Title of the flashcard set
+                doc.id,                // Document ID of the flashcard set
+                subjectId,             // The subjectId associated with this flashcard set
+              );
+            }).toList());
+  }
 
   // FLASHCARD CRUD
 
   // CREATE
-  Future<void> addFlashcard(String subjectId, String flashcardSetId, Flashcard flashcard) async {
+  Future<void> addFlashcard(String uid, String subjectId, String flashcardSetId, Flashcard flashcard) async {
     await _db
         .collection('subjects')
         .doc(subjectId)
         .collection('flashcardSets')
         .doc(flashcardSetId)
         .collection('flashcards')
-        .add({'term': flashcard.term, 'definition': flashcard.definition});
+        .add({
+      'term': flashcard.term,
+      'definition': flashcard.definition,
+      'uid': uid, // Associate with user ID
+    });
   }
 
   // DELETE
@@ -121,13 +192,14 @@ class FirestoreService {
   }
 
   // READ
-  Stream<List<Flashcard>> getFlashcards(String subjectId, String flashcardSetId) {
+  Stream<List<Flashcard>> getFlashcards(String uid, String subjectId, String flashcardSetId) {
     return _db
         .collection('subjects')
         .doc(subjectId)
         .collection('flashcardSets')
         .doc(flashcardSetId)
         .collection('flashcards')
+        .where('uid', isEqualTo: uid) // Filter by user ID
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) {
               final data = doc.data();

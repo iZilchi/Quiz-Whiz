@@ -3,25 +3,33 @@ import '../quiz mode/identification.dart';
 import '../quiz mode/multiplechoice.dart';
 
 class QuizScreen extends StatefulWidget {
-  const QuizScreen({super.key});
+  final String uid;
+
+  const QuizScreen({super.key, required this.uid});
 
   @override
   _QuizScreenState createState() => _QuizScreenState();
 }
 
 class _QuizScreenState extends State<QuizScreen> {
-  final List<Map<String, dynamic>> options = [
-    {
-      'title': 'Multiple Choice',
-      'color': const Color.fromARGB(232, 233, 172, 86),
-      'screen': MultipleChoiceScreen(),
-    },
-    {
-      'title': 'Identification Exam',
-      'color': const Color.fromARGB(232, 233, 172, 86),
-      'screen': IdentificationScreen(),
-    }
-  ];
+  final List<Map<String, dynamic>> options = [];
+
+  @override
+  void initState() {
+    super.initState();
+    options.addAll([
+      {
+        'title': 'Multiple Choice',
+        'color': const Color.fromARGB(232, 233, 172, 86),
+        'screen': MultipleChoiceScreen(uid: widget.uid), // Pass uid here
+      },
+      {
+        'title': 'Identification Exam',
+        'color': const Color.fromARGB(232, 233, 172, 86),
+        'screen': IdentificationScreen(uid: widget.uid), // Pass uid here
+      }
+    ]);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,3 +75,4 @@ class _QuizScreenState extends State<QuizScreen> {
     );
   }
 }
+

@@ -1,9 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flashcard_project/providers/subject_provider.dart';
 import 'package:flashcard_project/subject%20function/add_flashcardSets_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/header.dart';
-import '../widgets/subject_card.dart';
 import '../navigation buttons/quiz_screen.dart';
 import '../navigation buttons/subject_screen.dart';
 import '../navigation buttons/profile_screen.dart';
@@ -17,13 +17,24 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
+  late final String uid;
+  late final List<Widget> _pages;
 
-  final List<Widget> _pages = [
-    const HomeContent(),
-    const QuizScreen(),
-    const SubjectScreen(),
-    const ProfileScreen(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    final User? user = FirebaseAuth.instance.currentUser; // Get current user
+    uid = user?.uid ?? ''; // Safely handle null UID
+
+    _pages = [
+      HomeContent(uid: uid),
+      QuizScreen(uid: uid,),
+      SubjectScreen(uid: uid,),
+      ProfileScreen(),
+    ];
+  }
+
+  
 
   void _onItemTapped(int index) {
     setState(() {
@@ -62,11 +73,12 @@ class _HomePageState extends State<HomePage> {
 
 // Main content widget for the home page
 class HomeContent extends ConsumerWidget {
-  const HomeContent({super.key});
+  final String uid;
+  const HomeContent({super.key, required this.uid});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final subjects = ref.watch(subjectsProvider); // Get the full list of subjects
+    final subjects = ref.watch(subjectsProvider(uid)); // Get the full list of subjects
     final recentSubjects = subjects.reversed.take(5).toList(); // Nireverse yung order ng list ng subject tas kinuha yung first 5 subjects created para makuha yung latest subjects.
 
     return SingleChildScrollView(

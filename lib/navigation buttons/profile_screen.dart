@@ -1,171 +1,151 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../firebase/firestore_services.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+  ProfileScreen({super.key});
+
+  final FirestoreService firestoreService = FirestoreService();
+
+  final usernameController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmedPasswordController = TextEditingController();
+
+  //Get username and email in database
+  Future<Map<String, String>> _fetchUserDetails() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      throw Exception('No user is logged in.');
+    }
+
+    return await firestoreService.getUserDetails(user.uid);
+  }
 
   // Function to handle the logout action
   void _handleLogout(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Logout'),
-          content: const Text('Are you sure you want to log out?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close the dialog
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close the dialog
-                Navigator.pushReplacementNamed(context, '/login'); // Example navigation
-              },
-              child: const Text('Logout'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to log out?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Close the dialog
+            },
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context); // Close the dialog
+              try {
+                await FirebaseAuth.instance.signOut();
+                // Navigate to the login screen or a similar route
+                Navigator.pushReplacementNamed(context, '/login');
+              } catch (e) {
+                // Show an error dialog if signOut fails
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text('Error'),
+                      content: Text('Failed to log out: $e'),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context); // Close the error dialog
+                          },
+                          child: const Text('Close'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              }
+            },
+            child: const Text('Logout'),
+          ),
+        ],
+      );
+    },
+  );
+}
 
   // Function to show the Account Settings pop-up with extra features
-  void _showAccountSettingsDialog(BuildContext context) {
-    TextEditingController usernameController = TextEditingController();
+   void _editAccountDetailsDialog(BuildContext context) async {
+  final user = FirebaseAuth.instance.currentUser;
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Account Settings'),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Change Username Section
-                const Text(
-                  'Change Username',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                TextField(
-                  controller: usernameController,
-                  decoration: const InputDecoration(
-                    labelText: 'New Username',
-                    hintText: 'Enter your new username',
-                  ),
-                ),
-                const SizedBox(height: 20),
+  if (user == null) {
+    _showDialog(context, 'Error', 'No user is logged in.');
+    return;
+  }
 
-                // Change Email Section
-                const Text(
-                  'Change Email',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const TextField(
-                  decoration: InputDecoration(
-                    labelText: 'New Email',
-                    hintText: 'Enter your new email',
-                  ),
-                ),
-                const SizedBox(height: 20),
+  // Ensure the user document is initialized
+  try {
+    await firestoreService.initializeUser(user.uid, user.email ?? "guest@example.com");
+  } catch (e) {
+    _showDialog(context, 'Error', 'Failed to initialize user: $e');
+    return;
+  }
 
-                // Change Password Section
-                const Text(
-                  'Change Password',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const TextField(
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: 'New Password',
-                    hintText: 'Enter your new password',
-                  ),
-                ),
-                const SizedBox(height: 20),
+  usernameController.text = user.displayName ?? "guest";
 
-                // Profile Picture Section
-                const Text(
-                  'Change Profile Picture',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.camera_alt),
-                  label: const Text('Change Picture'),
-                  onPressed: () {
-                    // Logic for changing the profile picture
-                  },
-                ),
-                const SizedBox(height: 20),
-
-                // Language Preferences Section
-                const Text(
-                  'Language Preferences',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                DropdownButton<String>(
-                  items: const [
-                    DropdownMenuItem<String>(
-                      value: 'English',
-                      child: Text('English'),
-                    ),
-                    DropdownMenuItem<String>(
-                      value: 'Spanish',
-                      child: Text('Spanish'),
-                    ),
-                    DropdownMenuItem<String>(
-                      value: 'French',
-                      child: Text('French'),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    // Logic to change language preferences
-                  },
-                  hint: const Text('Select Language'),
-                ),
-                const SizedBox(height: 20),
-
-                // Delete Account Section
-                const Text(
-                  'Delete Account',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
-                ),
-                TextButton(
-                  onPressed: () {
-                    _showDialog(context, 'Account Deleted', 'Your account has been successfully deleted.');
-                  },
-                  child: const Text('Delete Account', style: TextStyle(color: Colors.red)),
-                ),
-              ],
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Edit Account Details'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Set Username',
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close the dialog
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                String newUsername = usernameController.text;
-                if (newUsername.isNotEmpty) {
-                  Navigator.pop(context); // Close the dialog
-                  _showDialog(context, 'Username Updated', 'Your username has been updated to: $newUsername');
-                } else {
-                  Navigator.pop(context);
-                  _showDialog(context, 'Error', 'Please enter a valid username.');
-                }
-              },
-              child: const Text('Save'),
+            TextField(
+              controller: usernameController,
+              decoration: const InputDecoration(
+                labelText: 'New Username',
+                hintText: 'Enter your new username',
+              ),
             ),
           ],
-        );
-      },
-    );
-  }
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              String newUsername = usernameController.text.trim();
+              if (newUsername.isNotEmpty) {
+                try {
+                  await firestoreService.updateUsername(user.uid, newUsername);
+                  await user.updateDisplayName(newUsername);
+
+                  Navigator.pop(context);
+                  _showDialog(context, 'Success', 'Username updated successfully.');
+                } catch (e) {
+                  Navigator.pop(context);
+                  _showDialog(context, 'Error', 'Failed to update username: $e');
+                }
+              } else {
+                _showDialog(context, 'Error', 'Please enter a valid username.');
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      );
+    },
+  );
+}
 
   // Function to show a generic pop-up dialog
   void _showDialog(BuildContext context, String title, String message) {
@@ -303,91 +283,100 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          // Background with Scrollable Content
-          Container(
-            color: Colors.grey[200], // Set the background color
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 50),
+      body: FutureBuilder<Map<String, String>>(
+        future: _fetchUserDetails(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData) {
+            return const Center(child: Text('No user details available.'));
+          }
 
-                    // Profile Picture and User Info Section
-                    Center(
-                      child: Column(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.green, // Border color
-                                width: 3, // Border width
+          final userDetails = snapshot.data!;
+          final username = userDetails['username']!;
+          final email = userDetails['email']!;
+
+          return Stack(
+            children: [
+              Container(
+                color: Colors.grey[200],
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 50),
+                        Center(
+                          child: Column(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.green,
+                                    width: 3,
+                                  ),
+                                ),
+                                child: const CircleAvatar(
+                                  radius: 50,
+                                  backgroundImage: NetworkImage(
+                                    'https://www.example.com/user-profile-image.jpg',
+                                  ),
+                                ),
                               ),
-                            ),
-                            child: const CircleAvatar(
-                              radius: 50,
-                              backgroundImage: NetworkImage(
-                                'https://www.example.com/user-profile-image.jpg',
+                              const SizedBox(height: 10),
+                              Text(
+                                username,
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
+                              Text(
+                                email,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 10),
-                          const Text(
-                            'Jude Tadeja',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const Text(
-                            'judetadeja17@gmail.com',
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
-                          ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 30),
+                        ListTile(
+                          leading: const Icon(Icons.account_circle, color: Colors.green),
+                          title: const Text('Account Details'),
+                          onTap: () => _editAccountDetailsDialog(context),
+                        ),
+                        const Divider(),
+                        ListTile(
+                          leading: const Icon(Icons.notifications, color: Colors.green),
+                          title: const Text('Notification Settings'),
+                          onTap: () => _showNotificationsDialog(context),
+                        ),
+                        const Divider(),
+                        ListTile(
+                          leading: const Icon(Icons.info, color: Colors.green),
+                          title: const Text('About'),
+                          onTap: () => _showAboutDialog(context),
+                        ),
+                        const Divider(),
+                        ListTile(
+                          leading: const Icon(Icons.logout, color: Colors.red),
+                          title: const Text('Logout'),
+                          onTap: () => _handleLogout(context),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 30),
-
-                    // Account Settings Section
-                    ListTile(
-                      leading: const Icon(Icons.account_circle, color: Colors.green),
-                      title: const Text('Account Settings'),
-                      onTap: () => _showAccountSettingsDialog(context), // Show the Account Settings pop-up
-                    ),
-                    const Divider(),
-
-                    // Notifications Section
-                    ListTile(
-                      leading: const Icon(Icons.notifications, color: Colors.green),
-                      title: const Text('Notification Settings'),
-                      onTap: () => _showNotificationsDialog(context), // Show the Notifications pop-up
-                    ),
-                    const Divider(),
-
-                    // About Section
-                    ListTile(
-                      leading: const Icon(Icons.info, color: Colors.green),
-                      title: const Text('About'),
-                      onTap: () => _showAboutDialog(context), // Show the About pop-up
-                    ),
-                    const Divider(),
-
-                    // Logout Section
-                    ListTile(
-                      leading: const Icon(Icons.logout, color: Colors.red),
-                      title: const Text('Logout'),
-                      onTap: () => _handleLogout(context), // Show the Logout confirmation dialog
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }

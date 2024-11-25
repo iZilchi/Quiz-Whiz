@@ -8,7 +8,8 @@ import '../providers/flashcards_provider.dart';
 import '../tests pages/multiple_choice_quiz_page.dart';
 
 class MultipleChoiceScreen extends ConsumerStatefulWidget {
-  const MultipleChoiceScreen({super.key});
+  final String uid;
+  const MultipleChoiceScreen({super.key, required this.uid});
 
   @override
   _MultipleChoiceScreenState createState() => _MultipleChoiceScreenState();
@@ -69,7 +70,7 @@ class _MultipleChoiceScreenState extends ConsumerState<MultipleChoiceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final subjects = ref.watch(subjectsProvider);
+    final subjects = ref.watch(subjectsProvider(widget.uid));
 
     return Scaffold(
       appBar: AppBar(

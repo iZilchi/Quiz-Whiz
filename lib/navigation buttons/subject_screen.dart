@@ -6,11 +6,13 @@ import '../providers/subject_provider.dart'; // Import the provider
 final hoverIndexProvider = StateProvider<int?>((ref) => null);
 
 class SubjectScreen extends ConsumerWidget {
-  const SubjectScreen({super.key});
+  final String uid;
+
+  const SubjectScreen({Key? key, required this.uid});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final subjects = ref.watch(subjectsProvider);  // Watch the subjects list
+    final subjects = ref.watch(subjectsProvider(uid));  // Watch the subjects list
     final hoverIndex = ref.watch(hoverIndexProvider);
 
     void addSubject() {
@@ -30,7 +32,7 @@ class SubjectScreen extends ConsumerWidget {
                 onPressed: () {
                   final setName = subjectController.text.trim();
                   if (setName.isNotEmpty) {
-                    ref.read(subjectsProvider.notifier).addSubject(setName);  // Use Riverpod to add subject
+                    ref.read(subjectsProvider(uid).notifier).addSubject(setName);  // Use Riverpod to add subject
                     Navigator.pop(context);
                   }
                 },
@@ -59,7 +61,7 @@ class SubjectScreen extends ConsumerWidget {
                 onPressed: () {
                   final setName = subjectController.text.trim();
                     if (setName.isNotEmpty) {
-                      ref.read(subjectsProvider.notifier).editSubject(index, setName);  // Use Riverpod to add subject
+                      ref.read(subjectsProvider(uid).notifier).editSubject(index, setName);  // Use Riverpod to add subject
                     Navigator.pop(context);
                   }
                 },
@@ -81,7 +83,7 @@ class SubjectScreen extends ConsumerWidget {
             actions: [
               TextButton(
                 onPressed: () {
-                  ref.read(subjectsProvider.notifier).deleteSubject(index);
+                  ref.read(subjectsProvider(uid).notifier).deleteSubject(index);
                   Navigator.pop(context);
                 },
                 child: const Text('Delete'),

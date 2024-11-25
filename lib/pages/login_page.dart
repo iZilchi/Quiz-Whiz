@@ -1,9 +1,77 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'signup_page.dart';
 import '../widgets/header.dart';
 
 class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+  LoginPage({super.key});
+
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+
+  Future<void> initializeUser(String uid, String email) async {
+    try {
+      final userDoc = _db.collection('users').doc(uid);
+      final docSnapshot = await userDoc.get();
+
+      if (!docSnapshot.exists) {
+        // Create a new user document with default fields
+        await userDoc.set({
+          'email': email,
+          'username': 'guest', // Default username
+        });
+      }
+    } catch (e) {
+      throw Exception('Error initializing user: $e');
+    }
+  }
+
+  void signIn(BuildContext context) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
+
+    try {
+      // Perform sign-in operation
+      final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      // Initialize user in Firestore
+      await initializeUser(userCredential.user!.uid, userCredential.user!.email!);
+
+      Navigator.of(context).pop();
+
+      // Navigate to HomePage after successful login
+      Navigator.pushReplacementNamed(context, '/home');
+    } catch (e) {
+      Navigator.of(context).pop();
+
+      // Handle errors and display a message
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Login Failed'),
+          content: Text(e.toString()),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,26 +112,29 @@ class LoginPage extends StatelessWidget {
                         textAlign: TextAlign.center, // Center-align text
                       ),
                       const SizedBox(height: 20),
-                      const TextField(
-                        decoration: InputDecoration(
-                          labelText: 'Username',
+                      TextField(
+                        controller: emailController,
+                        decoration: const InputDecoration(
+                          labelText: 'Email',
                           border: OutlineInputBorder(),
                         ),
                       ),
                       const SizedBox(height: 15),
-                      const TextField(
-                        decoration: InputDecoration(
+                      TextField(
+                        controller: passwordController,
+                        decoration: const InputDecoration(
                           labelText: 'Password',
                           border: OutlineInputBorder(),
                         ),
                         obscureText: true,
                       ),
                       const SizedBox(height: 20),
+
+                      //Sign In button
                       Center(
                         child: ElevatedButton(
                           onPressed: () {
-                            // Navigate to HomePage on login
-                            Navigator.pushReplacementNamed(context, '/home');
+                            signIn(context); // Pass context for navigation
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color.fromARGB(255, 10, 100, 13),
@@ -78,6 +149,7 @@ class LoginPage extends StatelessWidget {
                           ),
                         ),
                       ),
+
                       const SizedBox(height: 20),
                       Center(
                         child: Row(
@@ -89,7 +161,7 @@ class LoginPage extends StatelessWidget {
                                 // Navigate to SignUpPage on "Sign Up now" click
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => const SignUpPage()),
+                                  MaterialPageRoute(builder: (context) => SignUpPage()),
                                 );
                               },
                               child: const Text(

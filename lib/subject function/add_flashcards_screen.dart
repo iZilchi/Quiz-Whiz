@@ -17,7 +17,7 @@ class AddFlashcardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final flashcards = ref.watch(flashcardsProvider(flashcardSet)); // Watch the flashcards
     final currentFlashcardIndex = ref.watch(currentFlashcardIndexProvider);
-    // final isShuffled = ref.watch(isShuffledProvider(flashcardSet));
+    final isShuffled = ref.watch(isShuffledProvider);  // Add state for shuffle toggle
 
     void addFlashcard() {
       TextEditingController termController = TextEditingController();
@@ -150,18 +150,14 @@ class AddFlashcardScreen extends ConsumerWidget {
       }
     }
 
-    // Function to shuffle flashcards
-    // void toggleShuffle() {
-      // if (isShuffled) {
-      //   // If currently shuffled, restore the original order
-      //   ref.read(flashcardsProvider(flashcardSet).notifier).restoreOrder();
-      // } else {
-      //   // If not shuffled, shuffle the flashcards
-      //   ref.read(flashcardsProvider(flashcardSet).notifier).shuffle();
-      // }
-      // // Toggle shuffle state
-      // ref.read(isShuffledProvider(flashcardSet).notifier).state = !isShuffled;
-    // }
+    void toggleShuffle() {
+      if (isShuffled) {
+        ref.read(flashcardsProvider(flashcardSet).notifier).restoreOriginalOrder();
+      } else {
+        ref.read(flashcardsProvider(flashcardSet).notifier).shuffleFlashcards();
+      }
+      ref.read(isShuffledProvider.notifier).state = !isShuffled;  // Toggle shuffle state
+    }
 
     return Scaffold(
       backgroundColor: Colors.grey[200],
@@ -212,13 +208,13 @@ class AddFlashcardScreen extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            // IconButton(
-                            //   icon: Icon(
-                            //     isShuffled ? Icons.shuffle_on : Icons.shuffle,
-                            //     color: Colors.orange,
-                            //   ),
-                            //   onPressed: toggleShuffle,
-                            // ),
+                            IconButton(
+                              icon: Icon(
+                                isShuffled ? Icons.shuffle_on : Icons.shuffle,
+                                color: Colors.orange,
+                              ),
+                              onPressed: toggleShuffle,  // Call shuffle toggle
+                            ),
                             IconButton(
                               icon: const Icon(Icons.edit, color: Colors.blue),
                               onPressed: () {

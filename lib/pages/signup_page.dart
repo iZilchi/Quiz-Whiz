@@ -1,10 +1,96 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'home_page.dart';
 import '../widgets/header.dart';
 
 class SignUpPage extends StatelessWidget {
-  const SignUpPage({super.key});
+  SignUpPage({super.key});
+
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmedpasswordController = TextEditingController();
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+
+  Future<void> initializeUser(String uid, String email) async {
+    try {
+      final userDoc = _db.collection('users').doc(uid);
+      final docSnapshot = await userDoc.get();
+
+      if (!docSnapshot.exists) {
+        // Create a new user document with default fields
+        await userDoc.set({
+          'email': email,
+          'username': 'guest', // Default username
+        });
+      }
+    } catch (e) {
+      throw Exception('Error initializing user: $e');
+    }
+  }
+
+  void signUp(BuildContext context) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
+
+    try {
+      if (passwordController.text == confirmedpasswordController.text) {
+        final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: emailController.text.trim(),
+          password: passwordController.text.trim(),
+        );
+
+        // Initialize user in Firestore
+        await initializeUser(userCredential.user!.uid, userCredential.user!.email!);
+
+        Navigator.of(context).pop();
+
+        // Navigate to HomePage after successful sign-up
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        Navigator.of(context).pop();
+
+        // Display error if passwords don't match
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Sign-Up Failed'),
+            content: const Text("Passwords don't match! Please try again."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      Navigator.of(context).pop();
+
+      // Handle errors and display a message
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Sign-Up Failed'),
+          content: Text(e.toString()),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,23 +130,26 @@ class SignUpPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      const TextField(
-                        decoration: InputDecoration(
-                          labelText: 'Full Name',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-                      const TextField(
-                        decoration: InputDecoration(
+                      TextField(
+                        controller: emailController,
+                        decoration: const InputDecoration(
                           labelText: 'Username',
                           border: OutlineInputBorder(),
                         ),
                       ),
                       const SizedBox(height: 15),
-                      const TextField(
-                        decoration: InputDecoration(
+                      TextField(
+                        controller: passwordController,
+                        decoration: const InputDecoration(
                           labelText: 'Password',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      TextField(
+                        controller: confirmedpasswordController,
+                        decoration: const InputDecoration(
+                          labelText: 'Confirm Password',
                           border: OutlineInputBorder(),
                         ),
                         obscureText: true,
@@ -70,10 +159,7 @@ class SignUpPage extends StatelessWidget {
                         child: ElevatedButton(
                           onPressed: () {
                             // Navigate to HomePage on sign up
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const HomePage()),
-                            );
+                            signUp(context); 
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color.fromARGB(255, 10, 100, 13),
