@@ -124,7 +124,7 @@ class _AddScreenState extends State<AddScreen> {
                         backgroundColor: Colors.green,
                         padding: const EdgeInsets.symmetric(vertical: 15),
                       ),
-                      child: Text('Add Flashcard'),
+                      child: const Text('Add Flashcard'),
                     ),
                     const SizedBox(height: 20),
 
@@ -191,7 +191,7 @@ class _AddScreenState extends State<AddScreen> {
                     backgroundColor: Colors.blue,
                     padding: const EdgeInsets.symmetric(vertical: 15),
                   ),
-                  child: Text('View Flashcards'),
+                  child: const Text('View Flashcards'),
                 ),
               ),
             ],

@@ -61,7 +61,7 @@ class _IdentificationQuizPageState extends State<IdentificationQuizPage> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: [
-                  BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 4, offset: Offset(0, 2)),
+                  BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 2)),
                 ],
               ),
               child: Column(
@@ -112,7 +112,7 @@ class _IdentificationQuizPageState extends State<IdentificationQuizPage> {
                             score++;
                           }
                         }
-                        Navigator.push(
+                        Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(
                             builder: (context) => ResultPage(
@@ -123,6 +123,7 @@ class _IdentificationQuizPageState extends State<IdentificationQuizPage> {
                               quizType: 'Identification',
                             ),
                           ),
+                          (route) => false, // Removes all previous routes
                         );
                       }
                     : null,

@@ -145,7 +145,7 @@ class _IdentificationScreenState extends ConsumerState<IdentificationScreen> {
 
               final flashcards = ref.watch(
                 flashcardsProvider(selectedFlashcardSet!), // Pass the entire FlashcardSet object
-              ) as List<Flashcard>;
+              );
 
               _startQuiz(flashcards);
             },

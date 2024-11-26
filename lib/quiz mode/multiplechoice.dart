@@ -40,21 +40,21 @@ class _MultipleChoiceScreenState extends ConsumerState<MultipleChoiceScreen> {
     List<Map<String, dynamic>> questions = [];
 
     for (var flashcard in flashcards) {
-      List<String> choices = [flashcard.definition];
+      List<String> choices = [flashcard.term];
 
       while (choices.length < 4) {
         var randomFlashcard = flashcards[Random().nextInt(flashcards.length)];
 
-        if (randomFlashcard != flashcard && !choices.contains(randomFlashcard.definition)) {
-          choices.add(randomFlashcard.definition);
+        if (randomFlashcard != flashcard && !choices.contains(randomFlashcard.term)) {
+          choices.add(randomFlashcard.term);
         }
       }
 
       choices.shuffle();
 
       questions.add({
-        'question': flashcard.term,
-        'correctAnswer': flashcard.definition,
+        'question': flashcard.definition,
+        'correctAnswer': flashcard.term,
         'choices': choices,
       });
     }
@@ -150,7 +150,7 @@ class _MultipleChoiceScreenState extends ConsumerState<MultipleChoiceScreen> {
 
               final flashcards = ref.watch(
                 flashcardsProvider(selectedFlashcardSet!), // Pass the entire FlashcardSet object
-              ) as List<Flashcard>;
+              );
 
               _startQuiz(flashcards);
             },

@@ -2,9 +2,11 @@ class Flashcard {
   String term;
   String definition;
   String documentId;
+  String? mediaUrl;
 
-  Flashcard(this.term, this.definition, this.documentId);
+  Flashcard(this.term, this.definition, this.documentId, {this.mediaUrl});
 }
+
 
 class FlashcardSet {
   String title;

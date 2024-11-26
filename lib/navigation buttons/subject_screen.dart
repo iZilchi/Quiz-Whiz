@@ -8,7 +8,7 @@ final hoverIndexProvider = StateProvider<int?>((ref) => null);
 class SubjectScreen extends ConsumerWidget {
   final String uid;
 
-  const SubjectScreen({Key? key, required this.uid});
+  const SubjectScreen({super.key, required this.uid});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -105,6 +105,7 @@ class SubjectScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Subjects'),
         backgroundColor: Colors.grey[200],
+        leading: null, // Removes the default back button
       ),
       body: subjects.isEmpty
           ? const Center(child: Text('No subjects created yet.'))
