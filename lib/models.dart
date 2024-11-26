@@ -1,10 +1,10 @@
 class Flashcard {
-  String term;
-  String definition;
-  String documentId;
-  String? mediaUrl;
+  final String term;
+  final String definition;
+  final String documentId;
+  final String? imageUrl;
 
-  Flashcard(this.term, this.definition, this.documentId, {this.mediaUrl});
+  Flashcard(this.term, this.definition, this.documentId, {this.imageUrl});
 }
 
 
@@ -19,7 +19,7 @@ class FlashcardSet {
 
 class Subject {
   String title;
-  String documentId;  // Added documentId to track Firestore document ID
+  String documentId;
   List<FlashcardSet> flashcardSets;
 
   Subject(this.title, this.documentId) : flashcardSets = [];
