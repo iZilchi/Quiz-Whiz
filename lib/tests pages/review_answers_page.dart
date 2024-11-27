@@ -23,7 +23,7 @@ class ReviewAnswersPage extends StatelessWidget {
           itemBuilder: (context, index) {
             final question = questions[index];
             final correctAnswer = question['correctAnswer'];
-            final userAnswer = selectedAnswers[index];
+            final userAnswer = selectedAnswers[index] ?? 'No answer';
             final isCorrect = userAnswer == correctAnswer;
 
             return Card(

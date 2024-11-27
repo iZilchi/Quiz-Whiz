@@ -26,14 +26,14 @@ class AddFlashcardScreen extends ConsumerWidget {
     
     
     XFile? _mediaFile;
-    final ImagePicker _picker = ImagePicker();
+        final ImagePicker _picker = ImagePicker();
 
-    final String? uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) {
-      return Scaffold(
-        body: Center(child: Text("User not authenticated")),
-      );
-    }
+        final String? uid = FirebaseAuth.instance.currentUser?.uid;
+        if (uid == null) {
+          return Scaffold(
+            body: const Center(child: Text("User not authenticated")),
+          );
+        }
 
     Future<void> _pickMedia() async {
       final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
@@ -65,7 +65,6 @@ class AddFlashcardScreen extends ConsumerWidget {
       }
     }
 
-
     Future<void> deleteFlashcardFolder(String term, String flashcardSetName) async {
       try {
         final directory = await getApplicationDocumentsDirectory();
@@ -92,34 +91,34 @@ class AddFlashcardScreen extends ConsumerWidget {
       }
     }
 
-   Future<String?> _saveMediaLocally(XFile file, String flashcardSetName, String flashcardId) async {
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      final userDirectory = Directory('${directory.path}/$uid');
-      if (!await userDirectory.exists()) {
-        await userDirectory.create(recursive: true);
+    Future<String?> _saveMediaLocally(XFile file, String flashcardSetName, String flashcardId) async {
+      try {
+        final directory = await getApplicationDocumentsDirectory();
+        final userDirectory = Directory('${directory.path}/$uid');
+        if (!await userDirectory.exists()) {
+          await userDirectory.create(recursive: true);
+        }
+
+        final flashcardSetDirectory = Directory('${userDirectory.path}/$flashcardSetName');
+        if (!await flashcardSetDirectory.exists()) {
+          await flashcardSetDirectory.create(recursive: true);
+        }
+
+        final flashcardDirectory = Directory('${flashcardSetDirectory.path}/$flashcardId');
+        if (!await flashcardDirectory.exists()) {
+          await flashcardDirectory.create(recursive: true);
+        }
+
+        final filePath = '${flashcardDirectory.path}/${file.name}';
+        await File(file.path).copy(filePath);
+        print("Image saved to path: $filePath");
+
+        return filePath; // Return the saved path
+      } catch (e) {
+        print("Error saving media locally: $e");
+        return null;
       }
-
-      final flashcardSetDirectory = Directory('${userDirectory.path}/$flashcardSetName');
-      if (!await flashcardSetDirectory.exists()) {
-        await flashcardSetDirectory.create(recursive: true);
-      }
-
-      final flashcardDirectory = Directory('${flashcardSetDirectory.path}/$flashcardId');
-      if (!await flashcardDirectory.exists()) {
-        await flashcardDirectory.create(recursive: true);
-      }
-
-      final filePath = '${flashcardDirectory.path}/${file.name}';
-      await File(file.path).copy(filePath);
-      print("Image saved to path: $filePath");
-
-      return filePath;  // Return the saved path
-    } catch (e) {
-      print("Error saving media locally: $e");
-      return null;
     }
-  }
 
 
     void addFlashcard() {
@@ -179,15 +178,14 @@ class AddFlashcardScreen extends ConsumerWidget {
                     if (_mediaFile != null) {
                       final localPath = await _saveMediaLocally(
                         _mediaFile!,
-                        flashcardSet.title,  // Using flashcard set name
-                        term,                 // Using term as flashcard ID
+                        flashcardSet.title, 
+                        term,
                       );
                       if (localPath != null) {
-                        mediaPath = localPath; // Store the local path of the image
+                        mediaPath = localPath;
                       }
                     }
 
-                    // Add the flashcard with the image URL (local path or null)
                     ref
                         .read(flashcardsProvider(flashcardSet).notifier)
                         .addFlashcard(term, definition, imageUrl: mediaPath, uid: uid);
@@ -320,13 +318,12 @@ class AddFlashcardScreen extends ConsumerWidget {
         title: Text('Flashcards for ${flashcardSet.title}'),
         backgroundColor: Colors.grey[200],
       ),
-// Inside the body of the Scaffold
-body: flashcards.isEmpty
-    ? const Center(child: Text('No flashcards created yet.'))
-    : Center(
-        child: GestureDetector(
-          onTap: () {
-            ref.read(isShowingTermProvider.notifier).state =
+      body: flashcards.isEmpty
+          ? const Center(child: Text('No flashcards created yet.'))
+          : Center(
+            child: GestureDetector(
+              onTap: () {
+                ref.read(isShowingTermProvider.notifier).state =
                 !ref.read(isShowingTermProvider);
           },
           child: Card(
@@ -338,7 +335,6 @@ body: flashcards.isEmpty
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Display the term or definition
                   Text(
                     ref.watch(isShowingTermProvider)
                         ? flashcards[currentFlashcardIndex].term
@@ -348,18 +344,27 @@ body: flashcards.isEmpty
                   ),
                   const SizedBox(height: 16),
 
-                  // Display the image if it exists
-                  if (flashcards[currentFlashcardIndex].imageUrl != null)
+                  if (flashcards[currentFlashcardIndex].imageUrl != null &&
+                      File(flashcards[currentFlashcardIndex].imageUrl!).existsSync())
                     Padding(
                       padding: const EdgeInsets.only(top: 16),
                       child: Image.file(
                         File(flashcards[currentFlashcardIndex].imageUrl!),
-                        height: 150,
-                        width: 150,
+                        height: 200,
+                        width: double.infinity,
                         fit: BoxFit.cover,
+                      ),
+                    )
+                  else if (flashcards[currentFlashcardIndex].imageUrl != null)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 16),
+                      child: Text(
+                        'Image not found',
+                        style: TextStyle(color: Colors.red),
                       ),
                     ),
                   const SizedBox(height: 16),
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

@@ -7,7 +7,6 @@ class Flashcard {
   Flashcard(this.term, this.definition, this.documentId, {this.imageUrl});
 }
 
-
 class FlashcardSet {
   String title;
   String documentId;

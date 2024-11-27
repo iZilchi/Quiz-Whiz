@@ -10,6 +10,7 @@ class ResultPage extends StatelessWidget {
   final Map<int, String?> selectedAnswers;
   final List<Map<String, dynamic>> questions;
   final String quizType;
+  final int? previousTimerDuration;
 
   const ResultPage({
     super.key,
@@ -18,6 +19,7 @@ class ResultPage extends StatelessWidget {
     required this.selectedAnswers,
     required this.questions,
     required this.quizType,
+    this.previousTimerDuration,
   });
 
   @override
@@ -27,7 +29,6 @@ class ResultPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Quiz Result'),
-        automaticallyImplyLeading: false,
       ),
       body: Center(
         child: Padding(
@@ -78,14 +79,20 @@ class ResultPage extends StatelessWidget {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => QuizPage(questions: questions),
+                        builder: (context) => QuizPage(
+                          questions: questions,
+                          timerDuration: previousTimerDuration,
+                        ),
                       ),
                     );
                   } else if (quizType == 'Identification') {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => IdentificationQuizPage(questions: questions),
+                        builder: (context) => IdentificationQuizPage(
+                          questions: questions,
+                          timerDuration: previousTimerDuration,
+                        ),
                       ),
                     );
                   }

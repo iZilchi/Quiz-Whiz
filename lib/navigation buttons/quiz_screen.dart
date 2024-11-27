@@ -21,12 +21,12 @@ class _QuizScreenState extends State<QuizScreen> {
       {
         'title': 'Multiple Choice',
         'color': const Color.fromARGB(232, 233, 172, 86),
-        'screen': MultipleChoiceScreen(uid: widget.uid), // Pass uid here
+        'screen': MultipleChoiceScreen(uid: widget.uid),
       },
       {
         'title': 'Identification Exam',
         'color': const Color.fromARGB(232, 233, 172, 86),
-        'screen': IdentificationScreen(uid: widget.uid), // Pass uid here
+        'screen': IdentificationScreen(uid: widget.uid),
       }
     ]);
   }
@@ -34,6 +34,9 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Quiz Options'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(10.0),
         child: ListView.builder(
@@ -75,4 +78,3 @@ class _QuizScreenState extends State<QuizScreen> {
     );
   }
 }
-
