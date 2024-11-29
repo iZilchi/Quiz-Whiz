@@ -332,7 +332,7 @@ return Scaffold(
             onTap: () {
               ref.read(isShowingTermProvider.notifier).state =
                   !ref.read(isShowingTermProvider);
-              print("isShowingTerm toggled: ${ref.read(isShowingTermProvider)}"); // Debug statement
+              print("isShowingTerm toggled: ${ref.read(isShowingTermProvider)}");
             },
             child: Card(
               elevation: 5,
@@ -347,14 +347,13 @@ return Scaffold(
                       ref.watch(isShowingTermProvider)
                           ? flashcards[currentFlashcardIndex].term
                           : ref.watch(isShowingTermProvider) && flashcards[currentFlashcardIndex].imageUrl != null
-                            ? 'Tap to see image' // Show message when image is expected
+                            ? 'Tap to see image'
                             : flashcards[currentFlashcardIndex].definition,
                       style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
 
-                    // Image display logic based on `isShowingTermProvider`
                     if (!ref.watch(isShowingTermProvider) && flashcards[currentFlashcardIndex].imageUrl != null && 
                         File(flashcards[currentFlashcardIndex].imageUrl!).existsSync())
                       Padding(
