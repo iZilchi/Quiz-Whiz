@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models.dart';
 import '../providers/flashcards_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:path/path.dart' as p;
+
 
 final hoverIndexProvider = StateProvider<int?>((ref) => null);
 final currentFlashcardIndexProvider = StateProvider<int>((ref) => 0);
@@ -39,6 +41,7 @@ class AddFlashcardScreen extends ConsumerWidget {
       final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
       if (pickedFile != null) {
         _mediaFile = pickedFile;
+        print("Picked media file: ${_mediaFile!.path}");
       }
     }
 
@@ -113,12 +116,16 @@ class AddFlashcardScreen extends ConsumerWidget {
         await File(file.path).copy(filePath);
         print("Image saved to path: $filePath");
 
-        return filePath; // Return the saved path
+        final imageName = p.basename(filePath);
+        print("Extracted image name: $imageName");
+
+        return filePath;
       } catch (e) {
         print("Error saving media locally: $e");
         return null;
       }
     }
+
 
 
     void addFlashcard() {
@@ -312,107 +319,112 @@ class AddFlashcardScreen extends ConsumerWidget {
       ref.read(isShuffledProvider.notifier).state = !isShuffled;
     }
 
-    return Scaffold(
-      backgroundColor: Colors.grey[200],
-      appBar: AppBar(
-        title: Text('Flashcards for ${flashcardSet.title}'),
-        backgroundColor: Colors.grey[200],
-      ),
-      body: flashcards.isEmpty
-          ? const Center(child: Text('No flashcards created yet.'))
-          : Center(
-            child: GestureDetector(
-              onTap: () {
-                ref.read(isShowingTermProvider.notifier).state =
-                !ref.read(isShowingTermProvider);
-          },
-          child: Card(
-            elevation: 5,
-            margin: const EdgeInsets.all(16),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    ref.watch(isShowingTermProvider)
-                        ? flashcards[currentFlashcardIndex].term
-                        : flashcards[currentFlashcardIndex].definition,
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-
-                  if (flashcards[currentFlashcardIndex].imageUrl != null &&
-                      File(flashcards[currentFlashcardIndex].imageUrl!).existsSync())
-                    Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: Image.file(
-                        File(flashcards[currentFlashcardIndex].imageUrl!),
-                        height: 200,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                  else if (flashcards[currentFlashcardIndex].imageUrl != null)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 16),
-                      child: Text(
-                        'Image not found',
-                        style: TextStyle(color: Colors.red),
-                      ),
+return Scaffold(
+  backgroundColor: Colors.grey[200],
+  appBar: AppBar(
+    title: Text('Flashcards for ${flashcardSet.title}'),
+    backgroundColor: Colors.grey[200],
+  ),
+  body: flashcards.isEmpty
+      ? const Center(child: Text('No flashcards created yet.'))
+      : Center(
+          child: GestureDetector(
+            onTap: () {
+              ref.read(isShowingTermProvider.notifier).state =
+                  !ref.read(isShowingTermProvider);
+              print("isShowingTerm toggled: ${ref.read(isShowingTermProvider)}"); // Debug statement
+            },
+            child: Card(
+              elevation: 5,
+              margin: const EdgeInsets.all(16),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      ref.watch(isShowingTermProvider)
+                          ? flashcards[currentFlashcardIndex].term
+                          : ref.watch(isShowingTermProvider) && flashcards[currentFlashcardIndex].imageUrl != null
+                            ? 'Tap to see image' // Show message when image is expected
+                            : flashcards[currentFlashcardIndex].definition,
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
                     ),
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.blue),
-                        onPressed: navigateToPreviousFlashcard,
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.arrow_forward, color: Colors.blue),
-                        onPressed: navigateToNextFlashcard,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          isShuffled ? Icons.shuffle_on : Icons.shuffle,
-                          color: Colors.orange,
+                    // Image display logic based on `isShowingTermProvider`
+                    if (!ref.watch(isShowingTermProvider) && flashcards[currentFlashcardIndex].imageUrl != null && 
+                        File(flashcards[currentFlashcardIndex].imageUrl!).existsSync())
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: Image.file(
+                          File(flashcards[currentFlashcardIndex].imageUrl!),
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
                         ),
-                        onPressed: toggleShuffle,
+                      )
+                    else if (!ref.watch(isShowingTermProvider) && flashcards[currentFlashcardIndex].imageUrl != null)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 16),
+                        child: Text(
+                          'Image not found',
+                          style: TextStyle(color: Colors.red),
+                        ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue),
-                        onPressed: () {
-                          editFlashcard(currentFlashcardIndex);
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () {
-                          deleteFlashcard(currentFlashcardIndex);
-                        },
-                      ),
-                    ],
-                  ),
-                ],
+                    const SizedBox(height: 16),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back, color: Colors.blue),
+                          onPressed: navigateToPreviousFlashcard,
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.arrow_forward, color: Colors.blue),
+                          onPressed: navigateToNextFlashcard,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            isShuffled ? Icons.shuffle_on : Icons.shuffle,
+                            color: Colors.orange,
+                          ),
+                          onPressed: toggleShuffle,
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () {
+                            editFlashcard(currentFlashcardIndex);
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            deleteFlashcard(currentFlashcardIndex);
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: addFlashcard,
-        child: const Icon(Icons.add),
-      ),
-    );
+  floatingActionButton: FloatingActionButton(
+    onPressed: addFlashcard,
+    child: const Icon(Icons.add),
+  ),
+);
+
   }
 }
