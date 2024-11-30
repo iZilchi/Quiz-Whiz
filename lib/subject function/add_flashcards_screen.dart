@@ -36,12 +36,12 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       ..initialize().then((_) {
         if (mounted) {
           setState(() {});
-          _controller.play(); // Automatically start playing the video
+          _controller.play();
         }
       }).catchError((error) {
         print("Error initializing video player: $error");
         setState(() {
-          _isError = true; // Set error state
+          _isError = true;
         });
       });
   }
@@ -141,7 +141,7 @@ class AddFlashcardScreen extends ConsumerWidget {
                 file.path.endsWith('.jpg') ||
                 file.path.endsWith('.jpeg') ||
                 file.path.endsWith('.mp4') ||
-                file.path.endsWith('.mkv')) // Added .mkv extension
+                file.path.endsWith('.mkv'))
             .toList();
 
         if (mediaFileList.isEmpty) {
