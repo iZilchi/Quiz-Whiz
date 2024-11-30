@@ -48,7 +48,7 @@ class FlashcardsNotifier extends StateNotifier<List<Flashcard>> {
   }
 
   // CREATE
-  Future<void> addFlashcard(String term, String definition, {String? imageUrl, required String uid}) async {
+  Future<void> addFlashcard(String term, String definition, {String? imageUrl, required String uid, String? mediaUrl}) async {
   final newFlashcard = Flashcard(term, definition, '');
 
   // Add to the state temporarily
