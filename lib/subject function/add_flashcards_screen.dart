@@ -9,11 +9,12 @@ import '../providers/flashcards_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:path/path.dart' as p;
 
-
 final hoverIndexProvider = StateProvider<int?>((ref) => null);
 final currentFlashcardIndexProvider = StateProvider<int>((ref) => 0);
 final isShowingTermProvider = StateProvider<bool>((ref) => true);
 final isShuffledProvider = StateProvider<bool>((ref) => false);
+final displayedImageProvider = StateProvider<File?>((ref) => null);
+final isImageShownProvider = StateProvider<bool>((ref) => false);
 
 class AddFlashcardScreen extends ConsumerWidget {
   final FlashcardSet flashcardSet;
@@ -26,16 +27,16 @@ class AddFlashcardScreen extends ConsumerWidget {
     final currentFlashcardIndex = ref.watch(currentFlashcardIndexProvider);
     final isShuffled = ref.watch(isShuffledProvider);
     
-    
+    File? displayedImage;
     XFile? _mediaFile;
-        final ImagePicker _picker = ImagePicker();
+    final ImagePicker _picker = ImagePicker();
 
-        final String? uid = FirebaseAuth.instance.currentUser?.uid;
-        if (uid == null) {
-          return Scaffold(
-            body: const Center(child: Text("User not authenticated")),
-          );
-        }
+    final String? uid = FirebaseAuth.instance.currentUser ?.uid;
+    if (uid == null) {
+      return Scaffold(
+        body: const Center(child: Text("User  not authenticated")),
+      );
+    }
 
     Future<void> _pickMedia() async {
       final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
@@ -45,6 +46,51 @@ class AddFlashcardScreen extends ConsumerWidget {
       }
     }
 
+    Future<File?> fetchImage(String flashcardSetName, String term) async {
+      try {
+        final directory = await getApplicationDocumentsDirectory();
+        final filePath = '${directory.path}/$uid/$flashcardSetName/$term/';
+        print('Checking directory path: $filePath');
+
+        final dirExists = Directory(filePath).existsSync();
+        print("Directory exists: $dirExists");
+
+        if (!dirExists) return null;
+
+        final allFiles = Directory(filePath).listSync().toList();
+        print("Files in directory: ${allFiles.map((e) => e.path).toList()}");
+
+        final imageFileList = allFiles
+            .whereType<File>()
+            .where((file) =>
+                file.path.endsWith('.png') ||
+                file.path.endsWith('.jpg') ||
+                file.path.endsWith('.jpeg'))
+            .toList();
+
+        if (imageFileList.isEmpty) {
+          print("No image files found in: $filePath");
+          return null;
+        }
+
+        print("Image found: ${imageFileList.first.path}");
+        return imageFileList.first;
+      } catch (e) {
+        print("Error in fetchImage: $e");
+        return null;
+      }
+    }
+
+    Future<void> fetchAndDisplayImage(String term) async {
+      final file = await fetchImage(flashcardSet.title, term);
+      if (file != null) {
+        ref.read(displayedImageProvider.notifier).state = file;
+        ref.read(isImageShownProvider.notifier).state = true;
+      } else {
+        ref.read(isImageShownProvider.notifier).state = false;
+      }
+    }
+    
     Future<void> createFlashcardFolder(String term, String flashcardSetName) async {
       try {
         final directory = await getApplicationDocumentsDirectory();
@@ -196,6 +242,10 @@ class AddFlashcardScreen extends ConsumerWidget {
                     ref
                         .read(flashcardsProvider(flashcardSet).notifier)
                         .addFlashcard(term, definition, imageUrl: mediaPath, uid: uid);
+                    
+                    ref.read(displayedImageProvider.notifier).state = null;
+                    ref.read(isImageShownProvider.notifier).state = false;
+
                     Navigator.pop(context);
                   }
                 },
@@ -209,10 +259,8 @@ class AddFlashcardScreen extends ConsumerWidget {
 
     void editFlashcard(int index) {
       final flashcard = ref.read(flashcardsProvider(flashcardSet))[index];
-      TextEditingController termController =
-          TextEditingController(text: flashcard.term);
-      TextEditingController definitionController =
-          TextEditingController(text: flashcard.definition);
+      TextEditingController termController = TextEditingController(text: flashcard.term);
+      TextEditingController definitionController = TextEditingController(text: flashcard.definition);
 
       showDialog(
         context: context,
@@ -236,19 +284,33 @@ class AddFlashcardScreen extends ConsumerWidget {
               TextButton(
                 onPressed: () async {
                   final updatedTerm = termController.text.trim();
-                  final updatedDefinition =
-                      definitionController.text.trim();
+                  final updatedDefinition = definitionController.text.trim();
 
                   if (updatedTerm.isNotEmpty && updatedDefinition.isNotEmpty) {
+                    ref.read(displayedImageProvider.notifier).state = null;
+                    ref.read(isImageShownProvider.notifier).state = false;
+
                     final oldTerm = flashcard.term;
                     final flashcardSetName = flashcardSet.title;
-                    await deleteFlashcardFolder(oldTerm, flashcardSetName);
 
-                    ref
-                        .read(flashcardsProvider(flashcardSet).notifier)
-                        .editFlashcard(flashcard.documentId, updatedTerm, updatedDefinition);
+                    File? oldImageFile = await fetchImage(flashcardSetName, oldTerm);
 
                     await createFlashcardFolder(updatedTerm, flashcardSetName);
+
+                    if (oldImageFile != null) {
+                      try {
+                        final newImagePath = '${(await getApplicationDocumentsDirectory()).path}/$uid/$flashcardSetName/$updatedTerm/${oldImageFile.uri.pathSegments.last}';
+                        await oldImageFile.copy(newImagePath);
+                        print("Image moved to: $newImagePath");
+                      } catch (e) {
+                        print("Error moving image: $e");
+                      }
+                    }
+
+                    await deleteFlashcardFolder(oldTerm, flashcardSetName);
+
+                    ref.read(flashcardsProvider(flashcardSet).notifier)
+                        .editFlashcard(flashcard.documentId, updatedTerm, updatedDefinition);
                   }
 
                   Navigator.pop(context);
@@ -265,7 +327,6 @@ class AddFlashcardScreen extends ConsumerWidget {
       );
     }
 
-
     void deleteFlashcard(int index) {
       final flashcards = ref.read(flashcardsProvider(flashcardSet));
 
@@ -280,6 +341,9 @@ class AddFlashcardScreen extends ConsumerWidget {
 
         deleteFlashcardFolder(term, flashcardSetName);
 
+        ref.read(displayedImageProvider.notifier).state = null;
+        ref.read(isImageShownProvider.notifier).state = false;
+
         final newFlashcardCount = flashcards.length - 1;
         if (newFlashcardCount == 0) {
           ref.read(currentFlashcardIndexProvider.notifier).state = 0;
@@ -290,17 +354,20 @@ class AddFlashcardScreen extends ConsumerWidget {
       }
     }
 
-
     void navigateToPreviousFlashcard() {
       if (flashcards.isNotEmpty) {
+        ref.read(displayedImageProvider.notifier).state = null;
+        ref.read(isImageShownProvider.notifier).state = false;
         ref.read(currentFlashcardIndexProvider.notifier).state =
-            (currentFlashcardIndex - 1 + flashcards.length) %
-                flashcards.length;
+            (currentFlashcardIndex - 1 + flashcards.length) % flashcards.length;
       }
     }
 
     void navigateToNextFlashcard() {
       if (flashcards.isNotEmpty) {
+        ref.read(displayedImageProvider.notifier).state = null;
+        ref.read(isImageShownProvider.notifier).state = false;
+
         ref.read(currentFlashcardIndexProvider.notifier).state =
             (currentFlashcardIndex + 1) % flashcards.length;
       }
@@ -319,111 +386,154 @@ class AddFlashcardScreen extends ConsumerWidget {
       ref.read(isShuffledProvider.notifier).state = !isShuffled;
     }
 
-return Scaffold(
-  backgroundColor: Colors.grey[200],
-  appBar: AppBar(
-    title: Text('Flashcards for ${flashcardSet.title}'),
-    backgroundColor: Colors.grey[200],
-  ),
-  body: flashcards.isEmpty
-      ? const Center(child: Text('No flashcards created yet.'))
-      : Center(
-          child: GestureDetector(
-            onTap: () {
-              ref.read(isShowingTermProvider.notifier).state =
-                  !ref.read(isShowingTermProvider);
-              print("isShowingTerm toggled: ${ref.read(isShowingTermProvider)}");
-            },
-            child: Card(
-              elevation: 5,
-              margin: const EdgeInsets.all(16),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
+    return WillPopScope(
+      onWillPop: () async {
+        ref.read(displayedImageProvider.notifier).state = null;
+        ref.read(isImageShownProvider.notifier).state = false;
+        return true;
+      },
+      child: Scaffold(
+        backgroundColor: Colors.grey[200],
+        appBar: AppBar(
+          title: Text('Flashcards for ${flashcardSet.title}'),
+          backgroundColor: Colors.grey[200],
+        ),
+        body: flashcards.isEmpty
+            ? const Center(child: Text('No flashcards created yet.'))
+            : Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
-                      ref.watch(isShowingTermProvider)
-                          ? flashcards[currentFlashcardIndex].term
-                          : ref.watch(isShowingTermProvider) && flashcards[currentFlashcardIndex].imageUrl != null
-                            ? 'Tap to see image'
-                            : flashcards[currentFlashcardIndex].definition,
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-
-                    if (!ref.watch(isShowingTermProvider) && flashcards[currentFlashcardIndex].imageUrl != null && 
-                        File(flashcards[currentFlashcardIndex].imageUrl!).existsSync())
-                      Padding(
-                        padding: const EdgeInsets.only(top: 16),
-                        child: Image.file(
-                          File(flashcards[currentFlashcardIndex].imageUrl!),
-                          height: 200,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    else if (!ref.watch(isShowingTermProvider) && flashcards[currentFlashcardIndex].imageUrl != null)
-                      const Padding(
-                        padding: EdgeInsets.only(top: 16),
-                        child: Text(
-                          'Image not found',
-                          style: TextStyle(color: Colors.red),
+                    GestureDetector(
+                      onTap: () {
+                        ref .read(isShowingTermProvider.notifier).state =
+                            !ref.read(isShowingTermProvider);
+                        print("isShowingTerm toggled: ${ref.read(isShowingTermProvider)}");
+                      },
+                      child: Card(
+                        elevation: 5,
+                        margin: const EdgeInsets.all(16),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                ref.watch(isShowingTermProvider)
+                                    ? flashcards[currentFlashcardIndex].term
+                                    : flashcards[currentFlashcardIndex].definition,
+                                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.arrow_back, color: Colors.blue),
+                                    onPressed: navigateToPreviousFlashcard,
+                                  ),
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.edit, color: Colors.green),
+                                        onPressed: () => editFlashcard(currentFlashcardIndex),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete, color: Colors.red),
+                                        onPressed: () => deleteFlashcard(currentFlashcardIndex),
+                                      ),
+                                    ],
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.arrow_forward, color: Colors.blue),
+                                    onPressed: navigateToNextFlashcard,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    const SizedBox(height: 16),
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        final currentFlashcard = flashcards[currentFlashcardIndex];
+                        final imageExists = await fetchImage(flashcardSet.title, currentFlashcard.term) != null;
 
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back, color: Colors.blue),
-                          onPressed: navigateToPreviousFlashcard,
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.arrow_forward, color: Colors.blue),
-                          onPressed: navigateToNextFlashcard,
-                        ),
-                      ],
+                        if (imageExists) {
+                          final isImageShown = ref.read(isImageShownProvider.notifier).state;
+                          if (isImageShown) {
+                            ref.read(isImageShownProvider.notifier).state = false;
+                            ref.read(displayedImageProvider.notifier).state = null;
+                          } else {
+                            fetchAndDisplayImage(currentFlashcard.term);
+                          }
+                        } else {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text('No Image'),
+                                content: const Text('There is no image to show for this flashcard.'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(),
+                                    child: const Text('OK'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        }
+                      },
+                      child: Text(ref.watch(isImageShownProvider) ? 'Hide Image' : 'Show Image'),
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.grey,
+                        disabledForegroundColor: ref.watch(isImageShownProvider) ? Colors.blue : Colors.grey.withOpacity(0.38),
+                        disabledBackgroundColor: ref.watch(isImageShownProvider) ? Colors.blue : Colors.grey.withOpacity(0.12),
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            isShuffled ? Icons.shuffle_on : Icons.shuffle,
-                            color: Colors.orange,
+                    if (ref.watch(isImageShownProvider) && ref.watch(displayedImageProvider) != null)
+                      GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                content: Image.file(
+                                  ref.watch(displayedImageProvider)!,
+                                  fit: BoxFit.cover,
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(),
+                                    child: const Text('Close'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Image.file(
+                            ref.watch(displayedImageProvider)!,
+                            height: 200,
+                            width: 200,
+                            fit: BoxFit.cover,
                           ),
-                          onPressed: toggleShuffle,
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () {
-                            editFlashcard(currentFlashcardIndex);
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () {
-                            deleteFlashcard(currentFlashcardIndex);
-                          },
-                        ),
-                      ],
-                    ),
+                      ),
                   ],
                 ),
               ),
-            ),
-          ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: addFlashcard,
+          child: const Icon(Icons.add),
         ),
-  floatingActionButton: FloatingActionButton(
-    onPressed: addFlashcard,
-    child: const Icon(Icons.add),
-  ),
-);
-
+      ),
+    );
   }
 }
