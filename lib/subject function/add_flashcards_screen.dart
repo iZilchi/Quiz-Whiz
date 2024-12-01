@@ -249,220 +249,489 @@ class AddFlashcardScreen extends ConsumerWidget {
     }
 
     void addFlashcard() {
-      TextEditingController termController = TextEditingController();
-      TextEditingController definitionController = TextEditingController();
+  TextEditingController termController = TextEditingController();
+  TextEditingController definitionController = TextEditingController();
 
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('Create Flashcard'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: termController,
-                  decoration: const InputDecoration(labelText: 'Term'),
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        title: const Text(
+          'Create Flashcard',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Term Input Field
+              TextField(
+                controller: termController,
+                decoration: InputDecoration(
+                  labelText: 'Term',
+                  prefixIcon: const Icon(Icons.text_fields),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-                TextField(
-                  controller: definitionController,
-                  decoration: const InputDecoration(labelText: 'Definition'),
+              ),
+              const SizedBox(height: 16),
+
+              // Definition Input Field
+              TextField(
+                controller: definitionController,
+                decoration: InputDecoration(
+                  labelText: 'Definition',
+                  prefixIcon: const Icon(Icons.description),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    ElevatedButton(
-                      onPressed: _pickMedia,
-                      child: const Text('Upload Media'),
-                    ),
-                    if (_mediaFile != null)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 10),
-                        child: Text('Selected: ${_mediaFile?.name ?? ''}'),
+              ),
+              const SizedBox(height: 20),
+
+              // Media Upload Button
+              Row(
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _pickMedia,
+                    icon: const Icon(Icons.upload_file),
+                    label: const Text('Upload Media'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                  ],
-                ),
-                if (_mediaFile != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10),
-                    child: _mediaFile!.path.endsWith('.mp4')
-                        ? Container(
-                            height: 150,
-                            width: 150,
+                    ),
+                  ),
+                  if (_mediaFile != null)
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 10),
+                        child: Text(
+                          'Selected: ${_mediaFile?.name ?? ''}',
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.black54),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Media Preview
+              if (_mediaFile != null)
+                Center(
+                  child: _mediaFile!.path.endsWith('.mp4')
+                      ? SizedBox(
+                          height: 200,
+                          width: 200,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
                             child: VideoPlayerWidget(file: File(_mediaFile!.path)),
-                          )
-                        : Image.file(
+                          ),
+                        )
+                      : ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.file(
                             File(_mediaFile!.path),
-                            height: 150,
-                            width: 150,
+                            height: 200,
+                            width: 200,
                             fit: BoxFit.cover,
                           ),
+                        ),
+                ),
+            ],
+          ),
+        ),
+        actions: [
+          // Cancel Button
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+          // Add Button
+          ElevatedButton(
+            onPressed: () async {
+              final term = termController.text.trim();
+              final definition = definitionController.text.trim();
+
+              if (term.isEmpty || definition.isEmpty) {
+                // Show an error if fields are empty
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Please fill out all fields!'),
+                    backgroundColor: Colors.red,
                   ),
-              ],
+                );
+                return;
+              }
+
+              String? mediaPath;
+              if (_mediaFile != null) {
+                final localPath = await _saveMediaLocally(
+                  _mediaFile!,
+                  flashcardSet.title,
+                  term,
+                );
+                if (localPath != null) mediaPath = localPath;
+              }
+
+              ref
+                  .read(flashcardsProvider(flashcardSet).notifier)
+                  .addFlashcard(term, definition, mediaUrl: mediaPath, uid: uid);
+
+              // Clear media references
+              ref.read(displayedMediaProvider.notifier).state = null;
+              ref.read(isMediaShownProvider.notifier).state = false;
+
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
-            actions: [
-              TextButton(
-                onPressed: () async {
-                  final term = termController.text.trim();
-                  final definition = definitionController.text.trim();
-                  if (term.isNotEmpty && definition.isNotEmpty) {
-                    String? mediaPath;
+            child: const Text('Add'),
+          ),
+        ],
+      );
+    },
+  );
+}
 
-                    if (_mediaFile != null) {
-                      final localPath = await _saveMediaLocally(
-                        _mediaFile!,
-                        flashcardSet.title, 
-                        term,
-                      );
-                      if (localPath != null) mediaPath = localPath;
-                    }
 
-                    ref
-                        .read(flashcardsProvider(flashcardSet).notifier)
-                        .addFlashcard(term, definition, mediaUrl: mediaPath, uid: uid);
-                    
-                    ref.read(displayedMediaProvider.notifier).state = null;
-                    ref.read(isMediaShownProvider.notifier).state = false;
+   void editFlashcard(int index) {
+  final flashcard = ref.read(flashcardsProvider(flashcardSet))[index];
+  TextEditingController termController = TextEditingController(text: flashcard.term);
+  TextEditingController definitionController =
+      TextEditingController(text: flashcard.definition);
 
-                    Navigator.pop(context);
-                  }
-                },
-                child: const Text('Add'),
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: const Text(
+          'Edit Flashcard',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Term Input Field
+              TextField(
+                controller: termController,
+                decoration: InputDecoration(
+                  labelText: 'Term',
+                  prefixIcon: const Icon(Icons.text_fields),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Definition Input Field
+              TextField(
+                controller: definitionController,
+                decoration: InputDecoration(
+                  labelText: 'Definition',
+                  prefixIcon: const Icon(Icons.description),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
               ),
             ],
-          );
-        },
-      );
-    }
-
-    void editFlashcard(int index) {
-      final flashcard = ref.read(flashcardsProvider(flashcardSet))[index];
-      TextEditingController termController = TextEditingController(text: flashcard.term);
-      TextEditingController definitionController = TextEditingController(text: flashcard.definition);
-
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('Edit Flashcard'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: termController,
-                  decoration: const InputDecoration(labelText: 'Term'),
-                ),
-                TextField(
-                  controller: definitionController,
-                  decoration: const InputDecoration(labelText: 'Definition'),
-                ),
-              ],
+          ),
+        ),
+        actions: [
+          // Cancel Button
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey),
             ),
-            actions: [
-              TextButton(
-                onPressed: () async {
-                  final updatedTerm = termController.text.trim();
-                  final updatedDefinition = definitionController.text.trim();
+          ),
 
-                  if (updatedTerm.isNotEmpty && updatedDefinition.isNotEmpty) {
-                    ref.read(displayedMediaProvider.notifier).state = null;
-                    ref.read(isMediaShownProvider.notifier).state = false;
+          // Save Button
+          ElevatedButton(
+            onPressed: () async {
+              final updatedTerm = termController.text.trim();
+              final updatedDefinition = definitionController.text.trim();
 
-                    final oldTerm = flashcard.term;
-                    final flashcardSetName = flashcardSet.title;
+              if (updatedTerm.isEmpty || updatedDefinition.isEmpty) {
+                // Show error if fields are empty
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Please fill out all fields!'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
 
-                    File? oldImageFile = await fetchMedia(flashcardSetName, oldTerm);
+              // Update Media Files and Flashcard Content
+              ref.read(displayedMediaProvider.notifier).state = null;
+              ref.read(isMediaShownProvider.notifier).state = false;
 
-                    await createFlashcardFolder(updatedTerm, flashcardSetName);
+              final oldTerm = flashcard.term;
+              final flashcardSetName = flashcardSet.title;
 
-                    if (oldImageFile != null) {
-                      try {
-                        final newImagePath = '${(await getApplicationDocumentsDirectory()).path}/$uid/$flashcardSetName/$updatedTerm/${oldImageFile.uri.pathSegments.last}';
-                        await oldImageFile.copy(newImagePath);
-                        print("Image moved to: $newImagePath");
-                      } catch (e) {
-                        print("Error moving image: $e");
-                      }
-                    }
+              // Fetch old media file
+              File? oldMediaFile = await fetchMedia(flashcardSetName, oldTerm);
 
-                    await deleteFlashcardFolder(oldTerm, flashcardSetName);
+              // Create a new folder for the updated term
+              await createFlashcardFolder(updatedTerm, flashcardSetName);
 
-                    ref.read(flashcardsProvider(flashcardSet).notifier)
-                        .editFlashcard(flashcard.documentId, updatedTerm, updatedDefinition);
-                  }
+              if (oldMediaFile != null) {
+                try {
+                  final newMediaPath =
+                      '${(await getApplicationDocumentsDirectory()).path}/$uid/$flashcardSetName/$updatedTerm/${oldMediaFile.uri.pathSegments.last}';
+                  await oldMediaFile.copy(newMediaPath);
+                  print("Media moved to: $newMediaPath");
+                } catch (e) {
+                  print("Error moving media: $e");
+                }
+              }
 
-                  Navigator.pop(context);
-                },
-                child: const Text('Save'),
+              // Delete the old folder
+              await deleteFlashcardFolder(oldTerm, flashcardSetName);
+
+              // Update the flashcard data
+              ref
+                  .read(flashcardsProvider(flashcardSet).notifier)
+                  .editFlashcard(
+                    flashcard.documentId,
+                    updatedTerm,
+                    updatedDefinition,
+                  );
+
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Flashcard updated successfully!'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-            ],
-          );
-        },
+            ),
+            child: const Text('Save'),
+          ),
+        ],
       );
-    }
+    },
+  );
+}
 
-    void deleteFlashcard(int index) {
-      final flashcards = ref.read(flashcardsProvider(flashcardSet));
+   void deleteFlashcard(int index) {
+  final flashcards = ref.read(flashcardsProvider(flashcardSet));
 
-      if (index >= 0 && index < flashcards.length) {
-        final flashcard = flashcards[index];
-        final term = flashcard.term;
-        final flashcardSetName = flashcardSet.title;
+  if (index < 0 || index >= flashcards.length) {
+    // Handle invalid index gracefully
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Invalid flashcard index.'),
+        backgroundColor: Colors.red,
+      ),
+    );
+    return;
+  }
 
-        ref
-            .read(flashcardsProvider(flashcardSet).notifier)
-            .deleteFlashcard(flashcard.documentId);
+  final flashcard = flashcards[index];
+  final term = flashcard.term;
+  final flashcardSetName = flashcardSet.title;
 
-        deleteFlashcardFolder(term, flashcardSetName);
+  // Show confirmation dialog before deletion
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Delete Flashcard'),
+        content: const Text(
+          'Are you sure you want to delete this flashcard? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context), // Cancel deletion
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            onPressed: () async {
+              Navigator.pop(context); // Close dialog
 
-        ref.read(displayedMediaProvider.notifier).state = null;
-        ref.read(isMediaShownProvider.notifier).state = false;
+              // Delete flashcard from the provider
+              ref
+                  .read(flashcardsProvider(flashcardSet).notifier)
+                  .deleteFlashcard(flashcard.documentId);
 
-        final newFlashcardCount = flashcards.length - 1;
-        if (newFlashcardCount == 0) {
-          ref.read(currentFlashcardIndexProvider.notifier).state = 0;
-        } else if (index >= newFlashcardCount) {
-          ref.read(currentFlashcardIndexProvider.notifier).state =
-              newFlashcardCount - 1;
-        }
-      }
-    }
+              // Delete associated folder/media files
+              try {
+                await deleteFlashcardFolder(term, flashcardSetName);
+              } catch (e) {
+                print("Error deleting flashcard folder: $e");
+              }
+
+              // Reset media-related state
+              ref.read(displayedMediaProvider.notifier).state = null;
+              ref.read(isMediaShownProvider.notifier).state = false;
+
+              // Adjust the current flashcard index if needed
+              final newFlashcardCount = flashcards.length - 1;
+              if (newFlashcardCount == 0) {
+                ref.read(currentFlashcardIndexProvider.notifier).state = 0;
+              } else if (index >= newFlashcardCount) {
+                ref.read(currentFlashcardIndexProvider.notifier).state =
+                    newFlashcardCount - 1;
+              }
+
+              // Provide user feedback
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Flashcard deleted successfully.'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      );
+    },
+  );
+}
 
     void navigateToPreviousFlashcard() {
-      if (flashcards.isNotEmpty) {
-        ref.read(displayedMediaProvider.notifier).state = null;
-        ref.read(isMediaShownProvider.notifier).state = false;
-        ref.read(currentFlashcardIndexProvider.notifier).state =
-            (currentFlashcardIndex - 1 + flashcards.length) % flashcards.length;
-      }
+  if (flashcards.isEmpty) {
+    // Provide feedback if no flashcards are available
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('No flashcards available to navigate.'),
+        backgroundColor: Colors.red,
+      ),
+    );
+    return;
+  }
+
+  // Clear media state
+  ref.read(displayedMediaProvider.notifier).state = null;
+  ref.read(isMediaShownProvider.notifier).state = false;
+
+  // Safely calculate the previous flashcard index
+  final previousIndex =
+      (currentFlashcardIndex - 1 + flashcards.length) % flashcards.length;
+
+  // Update the current flashcard index
+  ref.read(currentFlashcardIndexProvider.notifier).state = previousIndex;
+
+  // Provide optional feedback (if necessary)
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text('Navigated to flashcard ${previousIndex + 1} of ${flashcards.length}.'),
+      backgroundColor: Colors.blueGrey,
+      duration: const Duration(seconds: 1),
+    ),
+  );
+}
+
+
+   void navigateToNextFlashcard() {
+  if (flashcards.isEmpty) {
+    // Show an improved notification with action
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('No flashcards available to navigate.'),
+        backgroundColor: Colors.redAccent,
+        duration: const Duration(seconds: 2),
+        action: SnackBarAction(
+          label: 'OK',
+          textColor: Colors.white,
+          onPressed: () {
+            // Optional: Handle additional actions on press if needed
+          },
+        ),
+      ),
+    );
+    return;
+  }
+
+  // Clear any displayed media or states in a concise way
+  ref.read(displayedMediaProvider.notifier).state = null;
+  ref.read(isMediaShownProvider.notifier).state = false;
+
+  // Calculate the next flashcard index and update the current flashcard index
+  final nextIndex = (currentFlashcardIndex + 1) % flashcards.length;
+  ref.read(currentFlashcardIndexProvider.notifier).state = nextIndex;
+
+  // Provide smooth user feedback with a customized SnackBar
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Center(
+        child: Text(
+          'Flashcard ${nextIndex + 1} of ${flashcards.length}.',
+          textAlign: TextAlign.center,  // Ensures the text is centered
+        ),
+      ),
+      backgroundColor: Colors.blueGrey.shade700,
+      duration: const Duration(seconds: 2),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),  // Rounded corners for the SnackBar
+      ),
+      behavior: SnackBarBehavior.floating,  // Floating SnackBar for modern UI
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Added margin for spacing
+    ),
+  );
+}
+
+
+
+   void toggleShuffle() {
+  try {
+    final flashcardsNotifier = ref.read(flashcardsProvider(flashcardSet).notifier);
+    final isCurrentlyShuffled = ref.read(isShuffledProvider);
+
+    if (isCurrentlyShuffled) {
+      // Restore the original order of flashcards
+      flashcardsNotifier.restoreOriginalOrder();
+    } else {
+      // Shuffle the flashcards
+      flashcardsNotifier.shuffleFlashcards();
     }
 
-    void navigateToNextFlashcard() {
-      if (flashcards.isNotEmpty) {
-        ref.read(displayedMediaProvider.notifier).state = null;
-        ref.read(isMediaShownProvider.notifier).state = false;
+    // Toggle the shuffle state
+    ref.read(isShuffledProvider.notifier).state = !isCurrentlyShuffled;
+  } catch (e) {
+    // Log or handle any potential errors gracefully
+    print("Error toggling shuffle state: $e");
+  }
+}
 
-        ref.read(currentFlashcardIndexProvider.notifier).state =
-            (currentFlashcardIndex + 1) % flashcards.length;
-      }
-    }
-
-    void toggleShuffle() {
-      if (isShuffled) {
-        ref
-            .read(flashcardsProvider(flashcardSet).notifier)
-            .restoreOriginalOrder();
-      } else {
-        ref
-            .read (flashcardsProvider(flashcardSet).notifier)
-            .shuffleFlashcards();
-      }
-      ref.read(isShuffledProvider.notifier).state = !isShuffled;
-    }
 
 
     return WillPopScope(

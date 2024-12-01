@@ -134,7 +134,10 @@ class SignUpPage extends StatelessWidget {
                         controller: emailController,
                         decoration: const InputDecoration(
                           labelText: 'Username',
-                          border: OutlineInputBorder(),
+                          labelStyle: TextStyle(
+                            fontSize: 13,
+                          ),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25))),
                         ),
                       ),
                       const SizedBox(height: 15),
@@ -142,7 +145,10 @@ class SignUpPage extends StatelessWidget {
                         controller: passwordController,
                         decoration: const InputDecoration(
                           labelText: 'Password',
-                          border: OutlineInputBorder(),
+                          labelStyle: TextStyle(
+                            fontSize: 13,
+                          ),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25))),
                         ),
                       ),
                       const SizedBox(height: 15),
@@ -150,7 +156,10 @@ class SignUpPage extends StatelessWidget {
                         controller: confirmedpasswordController,
                         decoration: const InputDecoration(
                           labelText: 'Confirm Password',
-                          border: OutlineInputBorder(),
+                          labelStyle:TextStyle(
+                            fontSize: 13,
+                          ),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25))),
                         ),
                         obscureText: true,
                       ),

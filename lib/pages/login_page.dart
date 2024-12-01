@@ -108,6 +108,8 @@ class LoginPage extends StatelessWidget {
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Color.fromARGB(221, 0, 0, 0),
+                          
+                          
                         ),
                         textAlign: TextAlign.center, // Center-align text
                       ),
@@ -116,7 +118,10 @@ class LoginPage extends StatelessWidget {
                         controller: emailController,
                         decoration: const InputDecoration(
                           labelText: 'Email',
-                          border: OutlineInputBorder(),
+                           labelStyle: TextStyle(
+                             fontSize: 13, // Adjust the font size here
+                            ),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25))),
                         ),
                       ),
                       const SizedBox(height: 15),
@@ -124,7 +129,10 @@ class LoginPage extends StatelessWidget {
                         controller: passwordController,
                         decoration: const InputDecoration(
                           labelText: 'Password',
-                          border: OutlineInputBorder(),
+                          labelStyle: TextStyle(
+                            fontSize: 13,
+                          ),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25))),
                         ),
                         obscureText: true,
                       ),
