@@ -223,6 +223,7 @@ class SubjectScreen extends ConsumerWidget {
         title: const Text('Subjects'),
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),  // Softer AppBar color for modern look
         leading: null, // Removes the default back button
+        automaticallyImplyLeading: false, 
         elevation: 2,  // Minimal elevation for subtle depth
       ),
       body: subjects.isEmpty

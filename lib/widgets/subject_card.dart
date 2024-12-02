@@ -1,31 +1,84 @@
 import 'package:flutter/material.dart';
 
 class SubjectCard extends StatelessWidget {
-  const SubjectCard({super.key});
+  final String subjectName; // Dynamic subject name
+  final VoidCallback? onTap; // Tap handler for interactivity
+
+  const SubjectCard({
+    Key? key,
+    required this.subjectName,
+    this.onTap,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 5,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Container(
-        width: 99,
-        height: 120,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          // Remove the image decoration
+    return GestureDetector(
+      onTap: onTap, // Allows the card to be tappable
+      child: Card(
+        elevation: 10, // Slightly increased elevation for better prominence
+        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 8), // Adds consistent padding
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20), // More pronounced rounded corners
         ),
-        child: const Center(
-          child: Text(
-            'Subject Name',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color.fromARGB(255, 0, 0, 0),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300), // Smooth hover or tap effect
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.indigo.shade300,
+                Colors.indigo.shade500,
+              ], // Gradient for a modern and vibrant look
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 10,
+                offset: const Offset(4, 4), // Subtle shadow for depth
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Add a slight animation effect when tapped/hovered
+              Hero(
+                tag: subjectName, // Ensures smooth transition if used in navigation
+                child: Icon(
+                  Icons.book_rounded, // Modern rounded icon for context
+                  size: 40,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 12), // Increased spacing for better layout
+              Text(
+                subjectName, // Dynamic subject name
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 18, // Slightly larger font size for better readability
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white, // White text for contrast
+                  letterSpacing: 1.2, // Improves text legibility
+                ),
+              ),
+              const SizedBox(height: 8), // Additional spacing
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'Tap to explore', // Additional interactivity hint
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

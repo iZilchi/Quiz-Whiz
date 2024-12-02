@@ -21,11 +21,13 @@ class _QuizScreenState extends State<QuizScreen> {
       {
         'title': 'Multiple Choice',
         'color': const Color.fromARGB(232, 233, 172, 86),
+        'icon': Icons.check_box_outline_blank,
         'screen': MultipleChoiceScreen(uid: widget.uid),
       },
       {
         'title': 'Identification Exam',
         'color': const Color.fromARGB(232, 233, 172, 86),
+        'icon': Icons.image_search,
         'screen': IdentificationScreen(uid: widget.uid),
       }
     ]);
@@ -36,9 +38,10 @@ class _QuizScreenState extends State<QuizScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Quiz Options'),
+        automaticallyImplyLeading: false, // Disable the back button
       ),
       body: Padding(
-        padding: const EdgeInsets.all(10.0),
+        padding: const EdgeInsets.all(16.0),
         child: ListView.builder(
           itemCount: options.length,
           itemBuilder: (context, index) {
@@ -55,19 +58,31 @@ class _QuizScreenState extends State<QuizScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
                 ),
+                elevation: 5,
                 color: option['color'],
                 child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Center(
-                    child: Text(
-                      option['title'],
-                      style: const TextStyle(
-                        fontFamily: 'Satoshi',
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      Icon(
+                        option['icon'],
+                        size: 32,
                         color: Colors.white,
                       ),
-                    ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          option['title'],
+                          style: const TextStyle(
+                            fontFamily: 'Satoshi',
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
