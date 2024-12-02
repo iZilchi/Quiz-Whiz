@@ -316,7 +316,7 @@ class ProfileScreen extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: Colors.green,
+                                    color: Color.fromARGB(255, 34, 123, 148),
                                     width: 3,
                                   ),
                                 ),
@@ -347,19 +347,19 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 30),
                         ListTile(
-                          leading: const Icon(Icons.account_circle, color: Colors.green),
+                          leading: const Icon(Icons.account_circle, color: Color.fromARGB(255, 34, 123, 148)),
                           title: const Text('Account Details'),
                           onTap: () => _editAccountDetailsDialog(context),
                         ),
                         const Divider(),
                         ListTile(
-                          leading: const Icon(Icons.notifications, color: Colors.green),
+                          leading: const Icon(Icons.notifications, color: Color.fromARGB(255, 34, 123, 148)),
                           title: const Text('Notification Settings'),
                           onTap: () => _showNotificationsDialog(context),
                         ),
                         const Divider(),
                         ListTile(
-                          leading: const Icon(Icons.info, color: Colors.green),
+                          leading: const Icon(Icons.info, color: Color.fromARGB(255, 34, 123, 148)),
                           title: const Text('About'),
                           onTap: () => _showAboutDialog(context),
                         ),

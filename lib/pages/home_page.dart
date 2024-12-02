@@ -62,7 +62,7 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
         currentIndex: _currentIndex,
-        selectedItemColor: Colors.green, // Highlight color for the selected tab
+        selectedItemColor: Color.fromARGB(255, 17, 138, 178), // Highlight color for the selected tab
         unselectedItemColor: const Color.fromARGB(135, 68, 65, 65), // Dim color for unselected tabs
         backgroundColor: Colors.white,
         onTap: _onItemTapped,
@@ -162,7 +162,7 @@ class HomeContent extends ConsumerWidget {
                             const Icon(
                               Icons.folder, // Folder icon for each subject
                               size: 36,
-                              color: Colors.green,
+                              color: Color.fromARGB(255, 255, 220, 127),
                             ),
                             const SizedBox(height: 8),
                             Text(

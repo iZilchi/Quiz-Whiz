@@ -184,7 +184,7 @@ class _LoginPageState extends State<LoginPage> {
                           child: ElevatedButton(
                             onPressed: isLoading ? null : () => signIn(context), // Disabled when loading
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color.fromARGB(255, 10, 100, 13), // Vibrant green for branding
+                              backgroundColor: const Color.fromARGB(255, 11, 37, 69), // Vibrant green for branding
                               padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 18), // Increased padding for better aesthetics
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30), // Smoothly rounded corners

@@ -20,8 +20,8 @@ class Header extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [
-            Color.fromARGB(255, 10, 100, 13), // Primary green
-            Color.fromARGB(255, 8, 81, 11), // Darker shade for gradient effect
+            Color.fromARGB(255, 19, 64, 116), // Primary green
+            Color.fromARGB(255, 11, 37, 69), // Darker shade for gradient effect
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
