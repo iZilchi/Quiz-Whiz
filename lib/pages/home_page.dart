@@ -16,26 +16,26 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _currentIndex = 0;
+  int _currentIndex = 0; // Tracks the current tab index
   late final String uid;
   late final List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
-    final User? user = FirebaseAuth.instance.currentUser; // Get current user
-    uid = user?.uid ?? ''; // Safely handle null UID
+    final User? user = FirebaseAuth.instance.currentUser; // Get the logged-in user
+    uid = user?.uid ?? ''; // Safely handle cases where UID is null
 
+    // Initialize the list of pages for the bottom navigation bar
     _pages = [
       HomeContent(uid: uid),
-      QuizScreen(uid: uid,),
-      SubjectScreen(uid: uid,),
+      QuizScreen(uid: uid),
+      SubjectScreen(uid: uid),
       ProfileScreen(),
     ];
   }
 
-  
-
+  // Handles bottom navigation bar taps
   void _onItemTapped(int index) {
     setState(() {
       _currentIndex = index;
@@ -48,9 +48,9 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Colors.grey[200],
       body: Column(
         children: [
-          Header(title: 'QUIZ\nWHIZ', isHomePage: _currentIndex == 0),
+          Header(title: 'QUIZ\nWHIZ', isHomePage: _currentIndex == 0), // Dynamic header
           Expanded(
-            child: _pages[_currentIndex],
+            child: _pages[_currentIndex], // Show the page corresponding to the current tab
           ),
         ],
       ),
@@ -62,8 +62,8 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
         currentIndex: _currentIndex,
-        selectedItemColor: Colors.green,
-        unselectedItemColor: const Color.fromARGB(135, 68, 65, 65),
+        selectedItemColor: Colors.green, // Highlight color for the selected tab
+        unselectedItemColor: const Color.fromARGB(135, 68, 65, 65), // Dim color for unselected tabs
         backgroundColor: Colors.white,
         onTap: _onItemTapped,
       ),
@@ -71,15 +71,17 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// Main content widget for the home page
+// Home page main content widget
 class HomeContent extends ConsumerWidget {
   final String uid;
+
   const HomeContent({super.key, required this.uid});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final subjects = ref.watch(subjectsProvider(uid)); // Get the full list of subjects
-    final recentSubjects = subjects.reversed.take(5).toList(); // Nireverse yung order ng list ng subject tas kinuha yung first 5 subjects created para makuha yung latest subjects.
+    // Watch the subjectsProvider to fetch subjects
+    final subjects = ref.watch(subjectsProvider(uid));
+    final recentSubjects = subjects.reversed.take(5).toList(); // Get the 5 most recently created subjects
 
     return SingleChildScrollView(
       child: Padding(
@@ -87,6 +89,7 @@ class HomeContent extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Search bar
             TextField(
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.search, color: Colors.black87),
@@ -101,6 +104,8 @@ class HomeContent extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 20),
+
+            // Recent subjects header
             const Text(
               'Recent',
               style: TextStyle(
@@ -110,11 +115,18 @@ class HomeContent extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 10),
+
+            // Show a message if there are no recent subjects
             if (recentSubjects.isEmpty)
-              const Text('No recent subjects.', style: TextStyle(color: Colors.black54)),
+              const Text(
+                'No recent subjects.',
+                style: TextStyle(color: Colors.black54),
+              ),
+
+            // Horizontal list of recent subjects
             if (recentSubjects.isNotEmpty)
               SizedBox(
-                height: 115, // Set a fixed height for the horizontal list
+                height: 115, // Fixed height for the horizontal list
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: recentSubjects.length,
@@ -122,7 +134,7 @@ class HomeContent extends ConsumerWidget {
                     final subject = recentSubjects[index];
                     return GestureDetector(
                       onTap: () {
-                        // Navigate to the specific subject
+                        // Navigate to the AddFlashcardSetScreen
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -132,7 +144,7 @@ class HomeContent extends ConsumerWidget {
                       },
                       child: Container(
                         width: 135, // Width of each card
-                        margin: const EdgeInsets.only(right: 16),
+                        margin: const EdgeInsets.only(right: 16), // Spacing between cards
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
@@ -144,15 +156,25 @@ class HomeContent extends ConsumerWidget {
                             ),
                           ],
                         ),
-                        child: Center(
-                          child: Text(
-                            subject.title,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.folder, // Folder icon for each subject
+                              size: 36,
+                              color: Colors.green,
                             ),
-                          ),
+                            const SizedBox(height: 8),
+                            Text(
+                              subject.title,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     );
