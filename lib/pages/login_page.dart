@@ -4,12 +4,20 @@ import 'package:flutter/material.dart';
 import 'signup_page.dart';
 import '../widgets/header.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   LoginPage({super.key});
 
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool isLoading = false;
+  bool _isPasswordVisible = false;
 
   Future<void> initializeUser(String uid, String email) async {
     try {
@@ -29,6 +37,12 @@ class LoginPage extends StatelessWidget {
   }
 
   void signIn(BuildContext context) async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -70,6 +84,10 @@ class LoginPage extends StatelessWidget {
           ],
         ),
       );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -98,90 +116,113 @@ class LoginPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center, // Center-align content
-                    children: [
-                      const Text(
-                        'Log in to your account',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(221, 0, 0, 0),
-                          
-                          
-                        ),
-                        textAlign: TextAlign.center, // Center-align text
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: emailController,
-                        decoration: const InputDecoration(
-                          labelText: 'Email',
-                           labelStyle: TextStyle(
-                             fontSize: 13, // Adjust the font size here
-                            ),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25))),
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-                      TextField(
-                        controller: passwordController,
-                        decoration: const InputDecoration(
-                          labelText: 'Password',
-                          labelStyle: TextStyle(
-                            fontSize: 13,
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center, // Center-align content
+                      children: [
+                        const Text(
+                          'Log in to your account',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color.fromARGB(221, 0, 0, 0),
                           ),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25))),
+                          textAlign: TextAlign.center, // Center-align text
                         ),
-                        obscureText: true,
-                      ),
-                      const SizedBox(height: 20),
-
-                      //Sign In button
-                      Center(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            signIn(context); // Pass context for navigation
+                        const SizedBox(height: 20),
+                        TextFormField(
+                          controller: emailController,
+                          decoration: const InputDecoration(
+                            labelText: 'Email',
+                            labelStyle: TextStyle(fontSize: 13), // Adjust the font size here
+                            border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25))),
+                            prefixIcon: Icon(Icons.email), // Added icon
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your email';
+                            }
+                            if (!RegExp(r"^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(value)) {
+                              return 'Please enter a valid email';
+                            }
+                            return null;
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(255, 10, 100, 13), // Vibrant green for branding
-                            padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 18), // Increased padding for better aesthetics
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30), // Smoothly rounded corners
+                        ),
+                        const SizedBox(height: 15),
+                        TextFormField(
+                          controller: passwordController,
+                          obscureText: !_isPasswordVisible,
+                          decoration: InputDecoration(
+                            labelText: 'Password',
+                            labelStyle: const TextStyle(fontSize: 13),
+                            border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25))),
+                            prefixIcon: const Icon(Icons.lock),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isPasswordVisible = !_isPasswordVisible;
+                                });
+                              },
                             ),
                           ),
-                          
-                          child: const Text(
-                            'Sign In',
-                            style: TextStyle(fontSize: 16, color: Colors.white),
-                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your password';
+                            }
+                            return null;
+                          },
                         ),
-                      ),
+                        const SizedBox(height: 20),
 
-                      const SizedBox(height: 20),
-                      Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text("Don't have an account? ", style: TextStyle(color: Colors.black54)),
-                            TextButton(
-                              onPressed: () {
-                                // Navigate to SignUpPage on "Sign Up now" click
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => SignUpPage()),
-                                );
-                              },
-                              child: const Text(
-                                "Sign Up now",
-                                style: TextStyle(color: Colors.blue),
+                        // Sign In button
+                        Center(
+                          child: ElevatedButton(
+                            onPressed: isLoading ? null : () => signIn(context), // Disabled when loading
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color.fromARGB(255, 10, 100, 13), // Vibrant green for branding
+                              padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 18), // Increased padding for better aesthetics
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30), // Smoothly rounded corners
                               ),
                             ),
-                          ],
+                            child: isLoading
+                                ? const CircularProgressIndicator(color: Colors.white)
+                                : const Text(
+                                    'Sign In',
+                                    style: TextStyle(fontSize: 16, color: Colors.white),
+                                  ),
+                          ),
                         ),
-                      ),
-                    ],
+
+                        const SizedBox(height: 20),
+                        Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text("Don't have an account? ", style: TextStyle(color: Colors.black54)),
+                              TextButton(
+                                onPressed: () {
+                                  // Navigate to SignUpPage on "Sign Up now" click
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => SignUpPage()),
+                                  );
+                                },
+                                child: const Text(
+                                  "Sign Up now",
+                                  style: TextStyle(color: Colors.blue),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

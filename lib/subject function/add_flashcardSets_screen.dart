@@ -29,7 +29,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
         title: const Text(
           'Create Flashcard Set',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 22, // Increased font size for title
             fontWeight: FontWeight.bold,
             color: Colors.blueAccent, // Modern color for the title
           ),
@@ -41,24 +41,28 @@ class AddFlashcardSetScreen extends ConsumerWidget {
             const Text(
               'Enter a title for your flashcard set:',
               style: TextStyle(
-                fontSize: 14,
-                color: Colors.black54, // Subtle secondary color
+                fontSize: 16, // Slightly larger font for the prompt
+                color: Colors.black87, // Darker text for better readability
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 16), // Increased space between prompt and input field
             TextField(
               controller: flashcardSetController,
               decoration: InputDecoration(
                 labelText: 'Flashcard Set Title',
                 labelStyle: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
+                  fontSize: 16, // Slightly larger font for label
+                  color: Color.fromARGB(255, 90, 90, 90), // Blue color for label to match theme
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12), // Rounded input field
                 ),
                 filled: true,
-                fillColor: Colors.grey[100], // Light background for input field
+                fillColor: Colors.blue[50], // Light blue background for input field
+              ),
+              style: const TextStyle(
+                fontSize: 16, // Larger text for input field
+                color: Colors.black, // Black text for better readability
               ),
             ),
           ],
@@ -72,7 +76,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
               'Cancel',
               style: TextStyle(
                 color: Colors.redAccent,
-                fontSize: 14,
+                fontSize: 16, // Increased font size for consistency
               ),
             ),
           ),
@@ -88,17 +92,18 @@ class AddFlashcardSetScreen extends ConsumerWidget {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blueAccent, // Button background color
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14), // More padding for buttons
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10), // Rounded corners for button
+                borderRadius: BorderRadius.circular(12), // Rounded corners for button
               ),
+              elevation: 5, // Add shadow for depth effect
             ),
             child: const Text(
               'Add',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
-                fontSize: 14,
+                fontSize: 16, // Larger font size for readability
               ),
             ),
           ),
@@ -107,6 +112,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
     },
   );
 }
+
 
    void editFlashcardSet(int index) {
   final flashcardSetController = TextEditingController();
@@ -121,7 +127,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
         title: const Text(
           'Edit Flashcard Set Title',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 22, // Increased font size for title
             fontWeight: FontWeight.bold,
             color: Colors.blueAccent, // Modern color for the title
           ),
@@ -133,24 +139,28 @@ class AddFlashcardSetScreen extends ConsumerWidget {
             const Text(
               'Update the title for your flashcard set:',
               style: TextStyle(
-                fontSize: 14,
-                color: Colors.black54, // Subtle secondary color
+                fontSize: 16, // Slightly larger font for prompt
+                color: Colors.black87, // Darker text for better readability
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 16), // Increased space between prompt and input field
             TextField(
               controller: flashcardSetController,
               decoration: InputDecoration(
                 labelText: 'New Flashcard Set Title',
                 labelStyle: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
+                  fontSize: 16, // Larger label text for visibility
+                  color: Color.fromARGB(255, 135, 136, 136), // Blue color for label to match theme
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12), // Rounded input field
                 ),
                 filled: true,
-                fillColor: Colors.grey[100], // Light background for input field
+                fillColor: Colors.blue[50], // Light blue background for input field
+              ),
+              style: const TextStyle(
+                fontSize: 16, // Larger font for input text
+                color: Colors.black, // Black text for better readability
               ),
             ),
           ],
@@ -164,7 +174,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
               'Cancel',
               style: TextStyle(
                 color: Colors.redAccent,
-                fontSize: 14,
+                fontSize: 16, // Increased font size for consistency
               ),
             ),
           ),
@@ -180,17 +190,18 @@ class AddFlashcardSetScreen extends ConsumerWidget {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blueAccent, // Button background color
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14), // More padding for buttons
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10), // Rounded corners for button
+                borderRadius: BorderRadius.circular(12), // Rounded corners for button
               ),
+              elevation: 5, // Add shadow for depth effect
             ),
             child: const Text(
               'Save',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
-                fontSize: 14,
+                fontSize: 16, // Larger font size for readability
               ),
             ),
           ),
@@ -199,6 +210,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
     },
   );
 }
+
 
    void deleteFlashcardSet(int index) {
   showDialog(
@@ -211,7 +223,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
         title: const Text(
           'Delete Flashcard Set',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 22, // Increased font size for emphasis
             fontWeight: FontWeight.bold,
             color: Colors.redAccent, // Highlight delete action with red
           ),
@@ -223,21 +235,21 @@ class AddFlashcardSetScreen extends ConsumerWidget {
             const Text(
               'Are you sure you want to delete this flashcard set?',
               style: TextStyle(
-                fontSize: 16,
-                color: Colors.black87, // Subtle secondary color
+                fontSize: 16, // Larger text for better readability
+                color: Colors.black87, // Dark text for primary message
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 16), // More space between texts
             const Text(
               'This will permanently delete all flashcards inside this set. This action cannot be undone.',
               style: TextStyle(
-                fontSize: 14,
-                color: Colors.black54, // Lighter color for secondary text
+                fontSize: 14, // Subtle warning font size
+                color: Colors.black54, // Light gray color for secondary info
               ),
             ),
           ],
         ),
-        actionsAlignment: MainAxisAlignment.spaceAround, // Center-align buttons
+        actionsAlignment: MainAxisAlignment.spaceEvenly, // Evenly spaced buttons
         actions: [
           ElevatedButton(
             onPressed: () {
@@ -248,17 +260,18 @@ class AddFlashcardSetScreen extends ConsumerWidget {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.redAccent, // Red button for delete action
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14), // Increased padding for comfort
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10), // Rounded corners for button
+                borderRadius: BorderRadius.circular(12), // Rounded corners for button
               ),
+              elevation: 5, // Added shadow for depth
             ),
             child: const Text(
               'Delete',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
-                fontSize: 14,
+                fontSize: 16, // Larger text for the delete button
               ),
             ),
           ),
@@ -268,16 +281,16 @@ class AddFlashcardSetScreen extends ConsumerWidget {
             },
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: Colors.grey), // Subtle border
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14), // Increased padding
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10), // Rounded corners for button
+                borderRadius: BorderRadius.circular(12), // Rounded corners for button
               ),
             ),
             child: const Text(
               'Cancel',
               style: TextStyle(
                 color: Colors.black87,
-                fontSize: 14,
+                fontSize: 16, // Larger text for the cancel button
               ),
             ),
           ),
@@ -287,7 +300,8 @@ class AddFlashcardSetScreen extends ConsumerWidget {
   );
 }
 
-    return Scaffold(
+
+   return Scaffold(
   backgroundColor: Colors.grey[200],
   appBar: AppBar(
     title: Text(
@@ -320,7 +334,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
-              childAspectRatio: 1.5,
+              childAspectRatio: 1.5, // Adjust the aspect ratio for better visuals
             ),
             itemCount: flashcardSets.length,
             itemBuilder: (context, index) {
@@ -341,7 +355,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
                         ),
                       ),
                       child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
+                        duration: const Duration(milliseconds: 300), // Smoother animation
                         curve: Curves.easeInOut,
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -351,8 +365,8 @@ class AddFlashcardSetScreen extends ConsumerWidget {
                               color: hoverIndex == index
                                   ? Colors.black26
                                   : Colors.black12,
-                              blurRadius: hoverIndex == index ? 8 : 4,
-                              offset: const Offset(2, 2),
+                              blurRadius: hoverIndex == index ? 12 : 6, // Increased shadow for hover effect
+                              offset: const Offset(4, 4), // Offset shadow slightly for better effect
                             ),
                           ],
                         ),
@@ -375,17 +389,17 @@ class AddFlashcardSetScreen extends ConsumerWidget {
                         right: 8,
                         child: Row(
                           children: [
+                            // Edit icon
                             IconButton(
-                              icon: const Icon(Icons.edit,
-                                  color: Colors.blueAccent),
+                              icon: const Icon(Icons.edit, color: Colors.blueAccent),
                               tooltip: 'Edit',
                               onPressed: () {
                                 editFlashcardSet(index);
                               },
                             ),
+                            // Delete icon
                             IconButton(
-                              icon: const Icon(Icons.delete,
-                                  color: Colors.redAccent),
+                              icon: const Icon(Icons.delete, color: Colors.redAccent),
                               tooltip: 'Delete',
                               onPressed: () {
                                 deleteFlashcardSet(index);

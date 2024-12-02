@@ -4,13 +4,20 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../widgets/header.dart';
 
-class SignUpPage extends StatelessWidget {
-  SignUpPage({super.key});
+class SignUpPage extends StatefulWidget {
+  const SignUpPage({super.key});
 
+  @override
+  _SignUpPageState createState() => _SignUpPageState();
+}
+
+class _SignUpPageState extends State<SignUpPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmedpasswordController = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final FirebaseFirestore _db = FirebaseFirestore.instance;
+  bool isLoading = false;
 
   Future<void> initializeUser(String uid, String email) async {
     try {
@@ -30,6 +37,12 @@ class SignUpPage extends StatelessWidget {
   }
 
   void signUp(BuildContext context) async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -89,6 +102,10 @@ class SignUpPage extends StatelessWidget {
           ],
         ),
       );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -117,93 +134,131 @@ class SignUpPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Sign up account',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: emailController,
-                        decoration: const InputDecoration(
-                          labelText: 'Username',
-                          labelStyle: TextStyle(
-                            fontSize: 13,
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Centered Sign up account text
+                        Center(
+                          child: const Text(
+                            'Sign up account',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                            textAlign: TextAlign.center, // Centers the text
                           ),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25))),
                         ),
-                      ),
-                      const SizedBox(height: 15),
-                      TextField(
-                        controller: passwordController,
-                        decoration: const InputDecoration(
-                          labelText: 'Password',
-                          labelStyle: TextStyle(
-                            fontSize: 13,
+                        const SizedBox(height: 20),
+                        TextFormField(
+                          controller: emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: const InputDecoration(
+                            labelText: 'Email Address',
+                            labelStyle: TextStyle(fontSize: 13),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(25)),
+                            ),
+                            prefixIcon: Icon(Icons.email),
                           ),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25))),
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-                      TextField(
-                        controller: confirmedpasswordController,
-                        decoration: const InputDecoration(
-                          labelText: 'Confirm Password',
-                          labelStyle:TextStyle(
-                            fontSize: 13,
-                          ),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25))),
-                        ),
-                        obscureText: true,
-                      ),
-                      const SizedBox(height: 20),
-                      Center(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            // Navigate to HomePage on sign up
-                            signUp(context); 
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your email';
+                            }
+                            if (!RegExp(r"^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(value)) {
+                              return 'Please enter a valid email';
+                            }
+                            return null;
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(255, 10, 100, 13),
-                            padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
+                        ),
+                        const SizedBox(height: 15),
+                        TextFormField(
+                          controller: passwordController,
+                          obscureText: true,
+                          decoration: const InputDecoration(
+                            labelText: 'Password',
+                            labelStyle: TextStyle(fontSize: 13),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(25)),
+                            ),
+                            prefixIcon: Icon(Icons.lock),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your password';
+                            }
+                            if (value.length < 6) {
+                              return 'Password must be at least 6 characters';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 15),
+                        TextFormField(
+                          controller: confirmedpasswordController,
+                          obscureText: true,
+                          decoration: const InputDecoration(
+                            labelText: 'Confirm Password',
+                            labelStyle: TextStyle(fontSize: 13),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(25)),
+                            ),
+                            prefixIcon: Icon(Icons.lock_outline),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please confirm your password';
+                            }
+                            if (value != passwordController.text) {
+                              return 'Passwords do not match';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        Center(
+                          child: ElevatedButton(
+                            onPressed: isLoading ? null : () => signUp(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color.fromARGB(255, 10, 100, 13),
+                              padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 15),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
+                            child: isLoading
+                                ? const CircularProgressIndicator(color: Colors.white)
+                                : const Text(
+                                    'Sign Up',
+                                    style: TextStyle(fontSize: 16, color: Colors.white),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Center(
+                          child: RichText(
+                            text: TextSpan(
+                              text: "Already have an account? ",
+                              style: const TextStyle(color: Colors.black54),
+                              children: [
+                                TextSpan(
+                                  text: "Log in",
+                                  style: const TextStyle(color: Colors.blue),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () {
+                                      // Navigate back to LoginPage on "Log in" click
+                                      Navigator.pop(context);
+                                    },
+                                ),
+                              ],
                             ),
                           ),
-                          child: const Text(
-                            'Sign Up',
-                            style: TextStyle(fontSize: 16, color: Colors.white),
-                          ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      Center(
-                        child: RichText(
-                          text: TextSpan(
-                            text: "Already have an account? ",
-                            style: const TextStyle(color: Colors.black54),
-                            children: [
-                              TextSpan(
-                                text: "Log in",
-                                style: const TextStyle(color: Colors.blue),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () {
-                                    // Navigate back to LoginPage on "Log in" click
-                                    Navigator.pop(context);
-                                  },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
