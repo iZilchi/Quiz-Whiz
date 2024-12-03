@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../subject function/add_flashcardSets_screen.dart';
 import '../providers/subject_provider.dart'; // Import the provider
 
@@ -220,7 +221,12 @@ class SubjectScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.grey[50],  // Lighter background to reduce contrast
       appBar: AppBar(
-        title: const Text('Subjects'),
+        title: Text('Subjects', 
+        style: GoogleFonts.nunito(
+          fontSize: 25,
+          fontWeight: FontWeight.bold, 
+          color: Colors.black87, 
+        ),),
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),  // Softer AppBar color for modern look
         leading: null, // Removes the default back button
         automaticallyImplyLeading: false, 

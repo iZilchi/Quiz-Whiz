@@ -40,7 +40,7 @@ class _QuizScreenState extends State<QuizScreen> {
       appBar: AppBar(
         title: Text('Quiz Options',
         style: GoogleFonts.nunito(
-            fontSize: 30, 
+            fontSize: 25, 
             fontWeight: FontWeight.bold, 
             color: Colors.black87, 
           ),),

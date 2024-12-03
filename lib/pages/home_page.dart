@@ -169,7 +169,7 @@ class HomeContent extends ConsumerWidget {
                             Text(
                               subject.title,
                               textAlign: TextAlign.center,
-                              style: GoogleFonts.nunitoSans(
+                              style: GoogleFonts.nunito(
 
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
