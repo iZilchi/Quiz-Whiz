@@ -1,6 +1,7 @@
 import 'package:flashcard_project/subject%20function/add_flashcards_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models.dart';
 import '../providers/flashcardSet_provider.dart';
 
@@ -306,9 +307,8 @@ class AddFlashcardSetScreen extends ConsumerWidget {
   appBar: AppBar(
     title: Text(
       'Flashcard Sets for ${subject.title}',
-      style: const TextStyle(
-        color: Colors.black87,
-        fontWeight: FontWeight.bold,
+      style: GoogleFonts.poppins(
+        fontWeight: FontWeight.w600,
         fontSize: 20,
       ),
     ),

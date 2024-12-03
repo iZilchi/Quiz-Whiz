@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
@@ -744,7 +745,11 @@ class AddFlashcardScreen extends ConsumerWidget {
       child: Scaffold(
         backgroundColor: Colors.grey[200],
         appBar: AppBar(
-          title: Text('Flashcards for ${flashcardSet.title}'),
+          title: Text('Flashcards for ${flashcardSet.title}', 
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),),
           backgroundColor: Colors.grey[200],
         ),
         body: flashcards.isEmpty
@@ -772,7 +777,7 @@ class AddFlashcardScreen extends ConsumerWidget {
                                 ref.watch(isShowingTermProvider)
                                     ? flashcards[currentFlashcardIndex].term
                                     : flashcards[currentFlashcardIndex].definition,
-                                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                                style: GoogleFonts.poppins(fontSize: 24),
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 16),

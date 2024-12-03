@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models.dart';
 import '../providers/subject_provider.dart';
 import '../providers/flashcardSet_provider.dart';
@@ -86,8 +87,15 @@ class _IdentificationScreenState extends ConsumerState<IdentificationScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Identification Quiz'),
-        backgroundColor: Colors.green,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text(
+          'Identification Quiz',
+          style: GoogleFonts.nunito(
+            fontSize: 20, 
+            fontWeight: FontWeight.bold, 
+            color: Colors.white, 
+          ),),
+        backgroundColor: Color.fromARGB(255, 34, 123, 148),
         actions: [
           IconButton(
             icon: const Icon(Icons.help_outline),

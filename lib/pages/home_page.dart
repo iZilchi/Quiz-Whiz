@@ -7,6 +7,7 @@ import '../widgets/header.dart';
 import '../navigation buttons/quiz_screen.dart';
 import '../navigation buttons/subject_screen.dart';
 import '../navigation buttons/profile_screen.dart';
+import "package:google_fonts/google_fonts.dart";
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -48,7 +49,7 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Colors.grey[200],
       body: Column(
         children: [
-          Header(title: 'QUIZ\nWHIZ', isHomePage: _currentIndex == 0), // Dynamic header
+          Header(title: 'QUIZ\nWHIZ',  isHomePage: _currentIndex == 0), // Dynamic header
           Expanded(
             child: _pages[_currentIndex], // Show the page corresponding to the current tab
           ),
@@ -106,11 +107,11 @@ class HomeContent extends ConsumerWidget {
             const SizedBox(height: 20),
 
             // Recent subjects header
-            const Text(
+            Text(
               'Recent',
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.normal,
                 color: Colors.black87,
               ),
             ),
@@ -168,7 +169,8 @@ class HomeContent extends ConsumerWidget {
                             Text(
                               subject.title,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
+                              style: GoogleFonts.nunitoSans(
+
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black87,

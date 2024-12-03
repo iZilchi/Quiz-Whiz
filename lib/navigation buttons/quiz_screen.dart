@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../quiz mode/identification.dart';
 import '../quiz mode/multiplechoice.dart';
 
@@ -37,7 +38,12 @@ class _QuizScreenState extends State<QuizScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Quiz Options'),
+        title: Text('Quiz Options',
+        style: GoogleFonts.nunito(
+            fontSize: 30, 
+            fontWeight: FontWeight.bold, 
+            color: Colors.black87, 
+          ),),
         automaticallyImplyLeading: false, // Disable the back button
       ),
       body: Padding(
@@ -73,8 +79,7 @@ class _QuizScreenState extends State<QuizScreen> {
                       Expanded(
                         child: Text(
                           option['title'],
-                          style: const TextStyle(
-                            fontFamily: 'Satoshi',
+                          style: GoogleFonts.nunito(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
