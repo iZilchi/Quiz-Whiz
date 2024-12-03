@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flip_card/flip_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,7 +10,6 @@ import '../models.dart';
 import '../providers/flashcards_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:path/path.dart' as p;
-
 final hoverIndexProvider = StateProvider<int?>((ref) => null);
 final currentFlashcardIndexProvider = StateProvider<int>((ref) => 0);
 final isShowingTermProvider = StateProvider<bool>((ref) => true);
@@ -413,9 +413,7 @@ class AddFlashcardScreen extends ConsumerWidget {
     },
   );
 }
-
-
-   void editFlashcard(int index) {
+  void editFlashcard(int index) {
   final flashcard = ref.read(flashcardsProvider(flashcardSet))[index];
   TextEditingController termController = TextEditingController(text: flashcard.term);
   TextEditingController definitionController =
@@ -745,11 +743,12 @@ class AddFlashcardScreen extends ConsumerWidget {
       child: Scaffold(
         backgroundColor: Colors.grey[200],
         appBar: AppBar(
-          title: Text('Flashcards for ${flashcardSet.title}', 
+          title: Text('Flashcards for ${flashcardSet.title}',
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.w600,
-          ),),
+          ),
+        ),
           backgroundColor: Colors.grey[200],
         ),
         body: flashcards.isEmpty
@@ -764,57 +763,87 @@ class AddFlashcardScreen extends ConsumerWidget {
                             !ref.read(isShowingTermProvider);
                         print("isShowingTerm toggled: ${ref.read(isShowingTermProvider)}");
                       },
-                      child: Card(
-                        elevation: 5,
-                        margin: const EdgeInsets.all(16),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text(
-                                ref.watch(isShowingTermProvider)
-                                    ? flashcards[currentFlashcardIndex].term
-                                    : flashcards[currentFlashcardIndex].definition,
-                                style: GoogleFonts.poppins(fontSize: 24),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 16),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: FlipCard(
+                        front: Card(
+                          elevation: 5,
+                          margin: const EdgeInsets.all(16),
+                          child: Container(
+                            width: 1000, 
+       
+                            alignment: Alignment.center,
+                            child: Padding(
+                              padding: const EdgeInsets.all(30),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min, // Ensures column takes up minimal space
+                                crossAxisAlignment: CrossAxisAlignment.center, // Centers content horizontally
                                 children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.arrow_back, color: Colors.blue),
-                                    onPressed: navigateToPreviousFlashcard,
-                                  ),
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.edit, color: Colors.green),
-                                        onPressed: () => editFlashcard(currentFlashcardIndex),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete, color: Colors.red),
-                                        onPressed: () => deleteFlashcard(currentFlashcardIndex),
-                                      ),
-                                    ],
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.arrow_forward, color: Colors.blue),
-                                    onPressed: navigateToNextFlashcard,
+                                  Text(
+                                    flashcards[currentFlashcardIndex].term,
+                                    style: GoogleFonts.poppins(fontSize: 24),
+                                    textAlign: TextAlign.center,
                                   ),
                                 ],
                               ),
-                            ],
+                            ),
+                          ),
+                        ),
+                        back: Card(
+                          elevation: 5,
+                          margin: const EdgeInsets.all(16),
+                          child: Container(
+                            width: 1000, 
+                            alignment: Alignment.center,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min, // Ensures column takes up minimal space
+                                crossAxisAlignment: CrossAxisAlignment.center, // Centers content horizontally
+                                children: [
+                                  Text(
+                                    flashcards[currentFlashcardIndex].definition,
+                                    style: GoogleFonts.poppins(fontSize: 24),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 16), // Add space below the definition
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
+
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back, color: Colors.blue),
+                            onPressed: navigateToPreviousFlashcard,
+                          ),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit, color: Colors.green),
+                                onPressed: () => editFlashcard(currentFlashcardIndex),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () => deleteFlashcard(currentFlashcardIndex),
+                              ),
+                            ],
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.arrow_forward, color: Colors.blue),
+                            onPressed: navigateToNextFlashcard,
+                          ),
+                        ],
+                      ),
                     ElevatedButton(
                       onPressed: () async {
                         final currentFlashcard = flashcards[currentFlashcardIndex];
-                        final mediaExists = await fetchMedia(flashcardSet.title, currentFlashcard.term) != null;
+                        final mediaExists =
+                            await fetchMedia(flashcardSet.title, currentFlashcard.term) != null;
 
                         if (mediaExists) {
                           final isMediaShown = ref.read(isMediaShownProvider.notifier).state;
@@ -845,11 +874,16 @@ class AddFlashcardScreen extends ConsumerWidget {
                       child: Text(ref.watch(isMediaShownProvider) ? 'Hide Media' : 'Show Media'),
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.grey,
-                        disabledForegroundColor: ref.watch(isMediaShownProvider) ? Colors.blue : Colors.grey.withOpacity(0.38),
-                        disabledBackgroundColor: ref.watch(isMediaShownProvider) ? Colors.blue : Colors.grey.withOpacity(0.12),
+                        disabledForegroundColor: ref.watch(isMediaShownProvider)
+                            ? Colors.blue
+                            : Colors.grey.withOpacity(0.38),
+                        disabledBackgroundColor: ref.watch(isMediaShownProvider)
+                            ? Colors.blue
+                            : Colors.grey.withOpacity(0.12),
                       ),
                     ),
-                    if (ref.watch(isMediaShownProvider) && ref.watch(displayedMediaProvider) != null)
+                    if (ref.watch(isMediaShownProvider) &&
+                        ref.watch(displayedMediaProvider) != null)
                       GestureDetector(
                         onTap: () {
                           showDialog(
@@ -857,7 +891,8 @@ class AddFlashcardScreen extends ConsumerWidget {
                             builder: (context) {
                               return AlertDialog(
                                 content: ref.watch(displayedMediaProvider)!.path.endsWith('.mp4')
-                                    ? VideoPlayerWidget(file: ref.watch(displayedMediaProvider)! )
+                                    ? VideoPlayerWidget(
+                                        file: ref.watch(displayedMediaProvider)!)
                                     : Image.file(
                                         ref.watch(displayedMediaProvider)!,
                                         fit: BoxFit.cover,
@@ -878,7 +913,8 @@ class AddFlashcardScreen extends ConsumerWidget {
                               ? Container(
                                   height: 200,
                                   width: 200,
-                                  child: VideoPlayerWidget(file: ref.watch(displayedMediaProvider)!),
+                                  child: VideoPlayerWidget(
+                                      file: ref.watch(displayedMediaProvider)!),
                                 )
                               : Image.file(
                                   ref.watch(displayedMediaProvider)!,
@@ -888,9 +924,9 @@ class AddFlashcardScreen extends ConsumerWidget {
                                 ),
                         ),
                       ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
         floatingActionButton: FloatingActionButton(
           onPressed: addFlashcard,
           child: const Icon(Icons.add),

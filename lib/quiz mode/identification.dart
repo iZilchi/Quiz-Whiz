@@ -193,7 +193,7 @@ class _IdentificationScreenState extends ConsumerState<IdentificationScreen> {
                           }
                         : null,
                     icon: const Icon(Icons.play_arrow),
-                    label: const Text('Start Quiz'),
+                    label: const Text('Start Quiz',),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: isFormValid
                           ? Colors.green

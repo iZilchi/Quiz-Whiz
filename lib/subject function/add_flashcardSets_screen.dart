@@ -1,6 +1,7 @@
 import 'package:flashcard_project/subject%20function/add_flashcards_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models.dart';
 import '../providers/flashcardSet_provider.dart';
 
@@ -302,19 +303,18 @@ class AddFlashcardSetScreen extends ConsumerWidget {
 
 
    return Scaffold(
-  backgroundColor: Colors.grey[200],
+  backgroundColor: const Color.fromARGB(255, 135,206,235),
   appBar: AppBar(
     title: Text(
       'Flashcard Sets for ${subject.title}',
-      style: const TextStyle(
-        color: Colors.black87,
-        fontWeight: FontWeight.bold,
+      style: GoogleFonts.poppins(
         fontSize: 20,
-      ),
-    ),
-    backgroundColor: Colors.white,
+        fontWeight: FontWeight.w600,
+        color: Colors.white,
+      ),),
+    backgroundColor: const Color.fromARGB(255, 73, 141, 214),
     elevation: 0, // Flat design for the app bar
-    iconTheme: const IconThemeData(color: Colors.black87), // Black back button
+    iconTheme: const IconThemeData(color: Colors.white), // Black back button
   ),
   body: flashcardSets.isEmpty
       ? const Center(
@@ -358,7 +358,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
                         duration: const Duration(milliseconds: 300), // Smoother animation
                         curve: Curves.easeInOut,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: const Color.fromARGB(255, 248, 250, 229),
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
@@ -377,7 +377,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                              color: Colors.black54,
                             ),
                           ),
                         ),
