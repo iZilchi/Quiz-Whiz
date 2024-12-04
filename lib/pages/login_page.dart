@@ -214,7 +214,7 @@ class _LoginPageState extends State<LoginPage> {
                                   );
                                 },
                                 child: const Text(
-                                  "Sign Up now",
+                                  "Sign Up",
                                   style: TextStyle(color: Colors.blue),
                                 ),
                               ),

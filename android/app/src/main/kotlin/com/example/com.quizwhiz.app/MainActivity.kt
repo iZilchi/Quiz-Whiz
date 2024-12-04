@@ -1,4 +1,4 @@
-package com.example.flashcard_project
+package com.quizwhiz.app
 
 import io.flutter.embedding.android.FlutterActivity
 

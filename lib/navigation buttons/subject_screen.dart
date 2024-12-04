@@ -321,6 +321,7 @@ class SubjectScreen extends ConsumerWidget {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: addSubject,
+        foregroundColor: Colors.white,
         backgroundColor: const Color.fromARGB(255, 120, 183, 208),  // A teal color for the FAB
         child: const Icon(Icons.add),
       ),

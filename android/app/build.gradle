@@ -11,7 +11,7 @@ plugins {
 apply plugin: 'com.google.gms.google-services'
 
 android {
-    namespace = "com.example.flashcard_project"
+    namespace = "com.quizwhiz.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -26,8 +26,8 @@ android {
 
     defaultConfig {
         defaultConfig {
-        applicationId = "com.example.flashcard_project"
-        minSdkVersion 21 // Ensure this is set to 21 or higher
+        applicationId = "com.quizwhiz.app"
+        minSdkVersion 23 // Ensure this is set to 21 or higher
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutter.versionCode
         versionName flutter.versionName
