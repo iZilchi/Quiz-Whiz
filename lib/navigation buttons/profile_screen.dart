@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../firebase/firestore_services.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -11,7 +13,10 @@ class ProfileScreen extends StatelessWidget {
   final passwordController = TextEditingController();
   final confirmedPasswordController = TextEditingController();
 
-  //Get username and email in database
+  final ImagePicker _picker = ImagePicker();
+  File? _selectedImage; // To store the picked image file
+
+  // Fetch user details
   Future<Map<String, String>> _fetchUserDetails() async {
     final user = FirebaseAuth.instance.currentUser;
 
@@ -24,143 +29,48 @@ class ProfileScreen extends StatelessWidget {
 
   // Function to handle the logout action
   void _handleLogout(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to log out?'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context); // Close the dialog
-            },
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context); // Close the dialog
-              try {
-                await FirebaseAuth.instance.signOut();
-                // Navigate to the login screen or a similar route
-                Navigator.pushReplacementNamed(context, '/login');
-              } catch (e) {
-                // Show an error dialog if signOut fails
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      title: const Text('Error'),
-                      content: Text('Failed to log out: $e'),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context); // Close the error dialog
-                          },
-                          child: const Text('Close'),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              }
-            },
-            child: const Text('Logout'),
-          ),
-        ],
-      );
-    },
-  );
-}
-
-  // Function to show the Account Settings pop-up with extra features
-   void _editAccountDetailsDialog(BuildContext context) async {
-  final user = FirebaseAuth.instance.currentUser;
-
-  if (user == null) {
-    _showDialog(context, 'Error', 'No user is logged in.');
-    return;
-  }
-
-  // Ensure the user document is initialized
-  try {
-    await firestoreService.initializeUser(user.uid, user.email ?? "guest@example.com");
-  } catch (e) {
-    _showDialog(context, 'Error', 'Failed to initialize user: $e');
-    return;
-  }
-
-  usernameController.text = user.displayName ?? "guest";
-
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('Edit Account Details'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Set Username',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            TextField(
-              controller: usernameController,
-              decoration: const InputDecoration(
-                labelText: 'New Username',
-                hintText: 'Enter your new username',
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              String newUsername = usernameController.text.trim();
-              if (newUsername.isNotEmpty) {
-                try {
-                  await firestoreService.updateUsername(user.uid, newUsername);
-                  await user.updateDisplayName(newUsername);
-
-                  Navigator.pop(context);
-                  _showDialog(context, 'Success', 'Username updated successfully.');
-                } catch (e) {
-                  Navigator.pop(context);
-                  _showDialog(context, 'Error', 'Failed to update username: $e');
-                }
-              } else {
-                _showDialog(context, 'Error', 'Please enter a valid username.');
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      );
-    },
-  );
-}
-
-  // Function to show a generic pop-up dialog
-  void _showDialog(BuildContext context, String title, String message) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(title),
-          content: Text(message),
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to log out?'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context); // Close the dialog
               },
-              child: const Text('Close'),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context); // Close the dialog
+                try {
+                  await FirebaseAuth.instance.signOut();
+                  // Navigate to the login screen or a similar route
+                  Navigator.pushReplacementNamed(context, '/login');
+                } catch (e) {
+                  // Show an error dialog if signOut fails
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: const Text('Error'),
+                        content: Text('Failed to log out: $e'),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context); // Close the error dialog
+                            },
+                            child: const Text('Close'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
+              },
+              child: const Text('Logout'),
             ),
           ],
         );
@@ -168,7 +78,97 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // Function to show the Notifications pop-up
+  // Function to pick an image from the gallery
+  Future<void> _pickImage(BuildContext context) async {
+    final pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 300,
+      maxHeight: 300,
+    );
+
+    if (pickedFile != null) {
+      _selectedImage = File(pickedFile.path);
+      _showDialog(context, 'Success', 'Profile image updated successfully.');
+    } else {
+      _showDialog(context, 'Error', 'No image selected.');
+    }
+  }
+
+  // Function to edit account details
+  void _editAccountDetailsDialog(BuildContext context) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      _showDialog(context, 'Error', 'No user is logged in.');
+      return;
+    }
+
+    // Ensure the user document is initialized
+    try {
+      await firestoreService.initializeUser(user.uid, user.email ?? "guest@example.com");
+    } catch (e) {
+      _showDialog(context, 'Error', 'Failed to initialize user: $e');
+      return;
+    }
+
+    usernameController.text = user.displayName ?? "guest";
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Edit Account Details'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Set Username',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextField(
+                controller: usernameController,
+                decoration: const InputDecoration(
+                  labelText: 'New Username',
+                  hintText: 'Enter your new username',
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                String newUsername = usernameController.text.trim();
+                if (newUsername.isNotEmpty) {
+                  try {
+                    await firestoreService.updateUsername(user.uid, newUsername);
+                    await user.updateDisplayName(newUsername);
+
+                    Navigator.pop(context);
+                    _showDialog(context, 'Success', 'Username updated successfully.');
+                  } catch (e) {
+                    Navigator.pop(context);
+                    _showDialog(context, 'Error', 'Failed to update username: $e');
+                  }
+                } else {
+                  _showDialog(context, 'Error', 'Please enter a valid username.');
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Function to show notification settings
   void _showNotificationsDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -238,7 +238,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // Function to show the About dialog with description
+  // Function to show About the app dialog
   void _showAboutDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -250,10 +250,8 @@ class ProfileScreen extends StatelessWidget {
           ),
           content: const Text(
             'This app provides users with a platform to take various quizzes on different topics, '
-            'track their progress, and improve their knowledge in a fun and interactive way. With features '
-            'like adjustable difficulty levels, real-time score tracking, and a variety of categories, users '
-            'can enjoy a personalized quiz experience designed to help them learn and grow.',
-            style: TextStyle(fontSize: 16),
+            'track their progress, and improve their knowledge in a fun and interactive way.',
+            style: TextStyle(fontSize: 15),
           ),
           actions: [
             const ListTile(
@@ -262,12 +260,37 @@ class ProfileScreen extends StatelessWidget {
             ),
             const ListTile(
               leading: Icon(Icons.person, color: Colors.blue),
-              title: Text('Developed by: Landicho, Alessandra Marie, Padua, Chris Justine, Pagcaliuangan, Kent Melard and Tadeja, Jude'),
+              title: Text('Developed by:\n'
+              '•Alyssa Marie Landicho\n'
+              '•Chris Justine Padua\n'
+              '•Kent Melard Pagcaliuangan\n'
+              '•Jude Tadeja'),
             ),
             const ListTile(
               leading: Icon(Icons.email, color: Colors.blue),
               title: Text('Contact: quizwhiz@gmail.com'),
             ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+              },
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Function to show a generic pop-up dialog
+  void _showDialog(BuildContext context, String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context); // Close the dialog
@@ -312,20 +335,39 @@ class ProfileScreen extends StatelessWidget {
                         Center(
                           child: Column(
                             children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Color.fromARGB(255, 34, 123, 148),
-                                    width: 3,
+                              Stack(
+                                children: [
+                                  // Profile Avatar
+                                  CircleAvatar(
+                                    radius: 50,
+                                    backgroundColor: Colors.grey[300],
+                                    backgroundImage: _selectedImage != null
+                                        ? FileImage(_selectedImage!)
+                                        : const NetworkImage(
+                                            'https://www.example.com/user-profile-image.jpg',
+                                          ) as ImageProvider,
                                   ),
-                                ),
-                                child: const CircleAvatar(
-                                  radius: 50,
-                                  backgroundImage: NetworkImage(
-                                    'https://www.example.com/user-profile-image.jpg',
+                                  // Edit Icon
+                                  Positioned(
+                                    bottom: 0,
+                                    right: 0,
+                                    child: GestureDetector(
+                                      onTap: () => _pickImage(context),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: BoxDecoration(
+                                          color: Colors.blue,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.camera_alt,
+                                          size: 20,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                ],
                               ),
                               const SizedBox(height: 10),
                               Text(

@@ -58,7 +58,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     // Wait for 2 seconds before navigating to the login page
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 3), () {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) => LoginPage(),
@@ -82,8 +82,8 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Center(
           child: Image.asset(
             'assets/logo.png',
-            width: 150,
-            height: 150,
+            width: 300,
+            height: 300,
           ),
         ),
       ),
