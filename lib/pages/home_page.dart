@@ -1,12 +1,15 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flashcard_project/providers/subject_provider.dart';
 import 'package:flashcard_project/subject%20function/add_flashcardSets_screen.dart';
+import 'package:flashcard_project/subject%20function/add_flashcards_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/header.dart';
+import '../firebase/firestore_services.dart';
 import '../navigation buttons/quiz_screen.dart';
 import '../navigation buttons/subject_screen.dart';
 import '../navigation buttons/profile_screen.dart';
+import '../models.dart';
 import "package:google_fonts/google_fonts.dart";
 
 class HomePage extends StatefulWidget {
@@ -73,16 +76,48 @@ class _HomePageState extends State<HomePage> {
 }
 
 // Home page main content widget
-class HomeContent extends ConsumerWidget {
+class HomeContent extends ConsumerStatefulWidget {
   final String uid;
-
   const HomeContent({super.key, required this.uid});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Watch the subjectsProvider to fetch subjects
-    final subjects = ref.watch(subjectsProvider(uid));
-    final recentSubjects = subjects.reversed.take(5).toList(); // Get the 5 most recently created subjects
+  _HomeContentState createState() => _HomeContentState();
+}
+
+class _HomeContentState extends ConsumerState<HomeContent> {
+  List<dynamic> searchResults = [];
+  FocusNode _searchFocusNode = FocusNode(); // FocusNode to track search bar focus
+
+  @override
+  void initState() {
+    super.initState();
+    _searchFocusNode.addListener(() {
+      setState(() {}); // Rebuild when the search bar gains or loses focus
+    });
+  }
+
+  void _performSearch(String query) async {
+    if (query.isNotEmpty) {
+      final results = await FirestoreService().searchData(widget.uid, query);
+      setState(() {
+        searchResults = results;
+      });
+    } else {
+      setState(() {
+        searchResults = [];
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final recentSubjects = ref.watch(subjectsProvider(widget.uid)).reversed.take(5).toList();
 
     return SingleChildScrollView(
       child: Padding(
@@ -90,23 +125,75 @@ class HomeContent extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Search bar
             TextField(
+              focusNode: _searchFocusNode, // Attach the FocusNode
+              onChanged: _performSearch,
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.search, color: Colors.black87),
-                hintText: 'Search for subjects',
+                hintText: 'Search for subjects or flashcard sets...',
                 hintStyle: TextStyle(color: Colors.black.withOpacity(0.6)),
                 filled: true,
-                fillColor: Colors.white.withOpacity(0.9),
+                fillColor: Colors.white,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30),
                   borderSide: BorderSide.none,
                 ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 12.0),
               ),
             ),
             const SizedBox(height: 20),
 
-            // Recent subjects header
+            if (_searchFocusNode.hasFocus && searchResults.isNotEmpty)
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 8,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ListView.builder(
+                  padding: EdgeInsets.zero, // Remove unnecessary padding
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: searchResults.length,
+                  itemBuilder: (context, index) {
+                    final item = searchResults[index];
+                    return ListTile(
+                      title: Text(item.title),
+                      subtitle: item is FlashcardSet ? Text('Flashcard Set') : Text('Subject'),
+                      onTap: () {
+                        if (item is Subject) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AddFlashcardSetScreen(subject: item),
+                            ),
+                          );
+                        } else if (item is FlashcardSet) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AddFlashcardScreen(flashcardSet: item),
+                            ),
+                          );
+                        }
+                      },
+                    );
+                  },
+                ),
+              )
+            else if (_searchFocusNode.hasFocus && searchResults.isEmpty)
+              const Text(
+                'No results found',
+                style: TextStyle(color: Colors.black54),
+              ),
+
+            // Display recent subjects
             Text(
               'Recent',
               style: GoogleFonts.poppins(
@@ -117,17 +204,15 @@ class HomeContent extends ConsumerWidget {
             ),
             const SizedBox(height: 10),
 
-            // Show a message if there are no recent subjects
             if (recentSubjects.isEmpty)
               const Text(
                 'No recent subjects.',
                 style: TextStyle(color: Colors.black54),
               ),
 
-            // Horizontal list of recent subjects
             if (recentSubjects.isNotEmpty)
               SizedBox(
-                height: 115, // Fixed height for the horizontal list
+                height: 115,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: recentSubjects.length,
@@ -135,7 +220,6 @@ class HomeContent extends ConsumerWidget {
                     final subject = recentSubjects[index];
                     return GestureDetector(
                       onTap: () {
-                        // Navigate to the AddFlashcardSetScreen
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -144,8 +228,8 @@ class HomeContent extends ConsumerWidget {
                         );
                       },
                       child: Container(
-                        width: 135, // Width of each card
-                        margin: const EdgeInsets.only(right: 16), // Spacing between cards
+                        width: 135,
+                        margin: const EdgeInsets.only(right: 16),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
@@ -161,7 +245,7 @@ class HomeContent extends ConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const Icon(
-                              Icons.folder, // Folder icon for each subject
+                              Icons.folder,
                               size: 36,
                               color: Color.fromARGB(255, 255, 220, 127),
                             ),
@@ -170,7 +254,6 @@ class HomeContent extends ConsumerWidget {
                               subject.title,
                               textAlign: TextAlign.center,
                               style: GoogleFonts.nunito(
-
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black87,
@@ -183,6 +266,7 @@ class HomeContent extends ConsumerWidget {
                   },
                 ),
               ),
+            const SizedBox(height: 10),
           ],
         ),
       ),

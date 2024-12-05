@@ -206,4 +206,37 @@ class FirestoreService {
               return Flashcard(data['term'], data['definition'], doc.id);
             }).toList());
   }
+
+  //SEARCH FUNCTION
+  //SEARCH FOR SUBJECT OR FLASHCARD SET
+  Future<List<dynamic>> searchData(String uid, String query) async {
+    final List<dynamic> results = [];
+
+    try {
+      // Search in subjects
+      final subjectsSnapshot = await _db
+          .collection('subjects')
+          .where('uid', isEqualTo: uid)
+          .where('title', isGreaterThanOrEqualTo: query)
+          .where('title', isLessThanOrEqualTo: query + '\uf8ff')
+          .get();
+
+      results.addAll(subjectsSnapshot.docs.map((doc) => Subject(doc['title'], doc.id)));
+
+      // Search in flashcard sets
+      final flashcardSetsSnapshot = await _db
+          .collectionGroup('flashcardSets')
+          .where('uid', isEqualTo: uid)
+          .where('title', isGreaterThanOrEqualTo: query)
+          .where('title', isLessThanOrEqualTo: query + '\uf8ff')
+          .get();
+
+      results.addAll(flashcardSetsSnapshot.docs.map((doc) => FlashcardSet(doc['title'], doc.id, doc.reference.parent.parent!.id)));
+
+    } catch (e) {
+      throw Exception('Error during search: $e');
+    }
+
+    return results;
+  }
 }
