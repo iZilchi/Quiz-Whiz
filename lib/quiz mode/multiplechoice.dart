@@ -83,6 +83,7 @@ class _MultipleChoiceScreenState extends ConsumerState<MultipleChoiceScreen> {
         builder: (context) => QuizPage(
           questions: questions,
           timerDuration: timerDuration != null ? timerDuration * 60 : null,
+          flashcardSet: selectedFlashcardSet!,
         ),
       ),
     );

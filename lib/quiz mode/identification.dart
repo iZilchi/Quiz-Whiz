@@ -76,6 +76,7 @@ class _IdentificationScreenState extends ConsumerState<IdentificationScreen> {
         builder: (context) => IdentificationQuizPage(
           questions: questions,
           timerDuration: timerDuration != null ? timerDuration * 60 : null,
+          flashcardSet: selectedFlashcardSet!,
         ),
       ),
     );

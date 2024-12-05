@@ -3,6 +3,7 @@ import 'multiple_choice_quiz_page.dart';
 import '../pages/home_page.dart';
 import '../tests pages/review_answers_page.dart';
 import 'identification_quiz_page.dart';
+import '../models.dart';
 
 class ResultPage extends StatelessWidget {
   final int score;
@@ -11,6 +12,7 @@ class ResultPage extends StatelessWidget {
   final List<Map<String, dynamic>> questions;
   final String quizType;
   final int? previousTimerDuration;
+  final FlashcardSet flashcardSet;
 
   const ResultPage({
     super.key,
@@ -20,6 +22,7 @@ class ResultPage extends StatelessWidget {
     required this.questions,
     required this.quizType,
     this.previousTimerDuration,
+    required this.flashcardSet,
   });
 
   @override
@@ -82,6 +85,7 @@ class ResultPage extends StatelessWidget {
                         builder: (context) => QuizPage(
                           questions: questions,
                           timerDuration: previousTimerDuration,
+                          flashcardSet: flashcardSet,
                         ),
                       ),
                     );
@@ -92,6 +96,7 @@ class ResultPage extends StatelessWidget {
                         builder: (context) => IdentificationQuizPage(
                           questions: questions,
                           timerDuration: previousTimerDuration,
+                          flashcardSet: flashcardSet,
                         ),
                       ),
                     );
