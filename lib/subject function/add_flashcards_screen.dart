@@ -33,6 +33,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   late VideoPlayerController _controller;
   bool _isInitialized = false;
   bool _isError = false;
+  bool _isPlaying = false;
 
   @override
   void initState() {
@@ -48,13 +49,13 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       if (mounted) {
         setState(() {
           _isInitialized = true;
+          _isPlaying = true;
           _controller.play();
         });
       }
     } catch (e, stack) {
       // ignore: avoid_print
       print('Error initializing video player: $e');
-      // ignore: avoid_print
       print(stack); // Print stack trace for debugging.
       setState(() {
         _isError = true;
@@ -78,10 +79,58 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return AspectRatio(
-      aspectRatio: _controller.value.aspectRatio,
-      child: VideoPlayer(_controller),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Video display
+        AspectRatio(
+          aspectRatio: _controller.value.aspectRatio,
+          child: VideoPlayer(_controller),
+        ),
+        // Video control bar
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          child: Row(
+            children: [
+              // Play/Pause button
+              IconButton(
+                icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
+                onPressed: () {
+                  setState(() {
+                    if (_isPlaying) {
+                      _controller.pause();
+                    } else {
+                      _controller.play();
+                    }
+                    _isPlaying = !_isPlaying;
+                  });
+                },
+              ),
+              // Video progress bar
+              Expanded(
+                child: VideoProgressIndicator(
+                  _controller,
+                  allowScrubbing: true,
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                ),
+              ),
+              // Video duration
+              Text(
+                formatDuration(_controller.value.duration),
+                style: const TextStyle(fontSize: 12.0),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
+  }
+
+  /// Format Duration for display as mm:ss
+  String formatDuration(Duration duration) {
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 }
 
@@ -275,54 +324,60 @@ class AddFlashcardScreen extends ConsumerWidget {
   void addFlashcard() {
     TextEditingController termController = TextEditingController();
     TextEditingController definitionController = TextEditingController();
+    bool mediaUploaded = false;
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          title: const Text(
-            'Create Flashcard',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Term Input Field
-                TextField(
-                  controller: termController,
-                  decoration: InputDecoration(
-                    labelText: 'Term',
-                    prefixIcon: const Icon(Icons.text_fields),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Definition Input Field
-                TextField(
-                  controller: definitionController,
-                  decoration: InputDecoration(
-                    labelText: 'Definition',
-                    prefixIcon: const Icon(Icons.description),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Media Upload Button
-                Row(
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              title: const Text(
+                'Create Flashcard',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Term Input Field
+                    TextField(
+                      controller: termController,
+                      decoration: InputDecoration(
+                        labelText: 'Term',
+                        prefixIcon: const Icon(Icons.text_fields),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Definition Input Field
+                    TextField(
+                      controller: definitionController,
+                      decoration: InputDecoration(
+                        labelText: 'Definition',
+                        prefixIcon: const Icon(Icons.description),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Media Upload Button
                     ElevatedButton.icon(
-                      onPressed: _pickMedia,
+                      onPressed: () async {
+                        await _pickMedia();
+                        setState(() {
+                          mediaUploaded = _mediaFile != null;
+                        });
+                      },
                       icon: const Icon(Icons.upload_file),
                       label: const Text('Upload Media'),
                       style: ElevatedButton.styleFrom(
@@ -333,242 +388,266 @@ class AddFlashcardScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    if (_mediaFile != null)
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 10),
-                          child: Text(
-                            'Selected: ${_mediaFile?.name ?? ''}',
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: Colors.black54),
+                    const SizedBox(height: 8),
+
+                    // Inline Media Upload Success Indication
+                     // Media Upload Indicator
+                    if (mediaUploaded)
+                      Row(
+                        children: [
+                          const Icon(Icons.check_circle, color: Colors.green),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              "Media uploaded: ${_mediaFile!.name}",
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: Colors.green),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                   ],
                 ),
-                const SizedBox(height: 16),
-
-                // Media Preview
-                if (_mediaFile != null)
-                  Center(
-                    child: _mediaFile!.path.endsWith('.mp4')
-                        ? SizedBox(
-                            height: 200,
-                            width: 200,
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: VideoPlayerWidget(file: File(_mediaFile!.path)),
-                            ),
-                          )
-                        : ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.file(
-                              File(_mediaFile!.path),
-                              height: 200,
-                              width: 200,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
+              ),
+              actions: [
+                // Cancel Button
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.grey),
                   ),
-              ],
-            ),
-          ),
-          actions: [
-            // Cancel Button
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.grey),
-              ),
-            ),
-            // Add Button
-            ElevatedButton(
-              onPressed: () async {
-                final term = termController.text.trim();
-                final definition = definitionController.text.trim();
+                ),
 
-                if (term.isEmpty || definition.isEmpty) {
-                  // Show an error if fields are empty
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please fill out all fields!'),
-                      backgroundColor: Colors.red,
+                // Add Button
+                ElevatedButton(
+                  onPressed: () async {
+                    final term = termController.text.trim();
+                    final definition = definitionController.text.trim();
+
+                    if (term.isEmpty || definition.isEmpty) {
+                      // Show an error if fields are empty
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please fill out all fields!'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+
+                    String? mediaPath;
+                    if (_mediaFile != null) {
+                      final localPath = await _saveMediaLocally(
+                        _mediaFile!,
+                        flashcardSet.title,
+                        term,
+                      );
+                      if (localPath != null) mediaPath = localPath;
+                    }
+
+                    ref
+                        .read(flashcardsProvider(flashcardSet).notifier)
+                        .addFlashcard(term, definition, mediaUrl: mediaPath, uid: uid);
+
+                    // Clear media references
+                    ref.read(displayedMediaProvider.notifier).state = null;
+                    ref.read(isMediaShownProvider.notifier).state = false;
+
+                    recordActivity(uid);
+
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                  );
-                  return;
-                }
-
-                String? mediaPath;
-                if (_mediaFile != null) {
-                  final localPath = await _saveMediaLocally(
-                    _mediaFile!,
-                    flashcardSet.title,
-                    term,
-                  );
-                  if (localPath != null) mediaPath = localPath;
-                }
-
-                ref
-                    .read(flashcardsProvider(flashcardSet).notifier)
-                    .addFlashcard(term, definition, mediaUrl: mediaPath, uid: uid);
-
-                // Clear media references
-                ref.read(displayedMediaProvider.notifier).state = null;
-                ref.read(isMediaShownProvider.notifier).state = false;
-
-                recordActivity(uid);
-
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            ),
-            child: const Text('Add'),
-          ),
-        ],
-      );
-    },
-  );
-}
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 12),
+                  ),
+                  child: const Text('Add'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 
   void editFlashcard(int index) {
-  final flashcard = ref.read(flashcardsProvider(flashcardSet))[index];
-  TextEditingController termController = TextEditingController(text: flashcard.term);
-  TextEditingController definitionController =
-      TextEditingController(text: flashcard.definition);
+    final flashcard = ref.read(flashcardsProvider(flashcardSet))[index];
+    TextEditingController termController = TextEditingController(text: flashcard.term);
+    TextEditingController definitionController =
+        TextEditingController(text: flashcard.definition);
+
+    XFile? selectedMedia; // To track the uploaded media
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          title: const Text(
-            'Edit Flashcard',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Term Input Field
-                TextField(
-                  controller: termController,
-                  decoration: InputDecoration(
-                    labelText: 'Term',
-                    prefixIcon: const Icon(Icons.text_fields),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              title: const Text(
+                'Edit Flashcard',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Term Input Field
+                    TextField(
+                      controller: termController,
+                      decoration: InputDecoration(
+                        labelText: 'Term',
+                        prefixIcon: const Icon(Icons.text_fields),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
                     ),
+                    const SizedBox(height: 16),
+
+                    // Definition Input Field
+                    TextField(
+                      controller: definitionController,
+                      decoration: InputDecoration(
+                        labelText: 'Definition',
+                        prefixIcon: const Icon(Icons.description),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Replace Media Button
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        await _pickMedia(); // Call your media picker function
+                        if (_mediaFile != null) {
+                          setState(() {
+                            selectedMedia = _mediaFile; // Update selected media
+                          });
+                        }
+                      },
+                      icon: const Icon(Icons.upload_file),
+                      label: const Text("Replace Media"),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Media Upload Indicator
+                    if (selectedMedia != null)
+                      Row(
+                        children: [
+                          const Icon(Icons.check_circle, color: Colors.green),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              "Media uploaded: ${selectedMedia!.name}",
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: Colors.green),
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+              actions: [
+                // Cancel Button
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.grey),
                   ),
                 ),
-                const SizedBox(height: 16),
 
-                // Definition Input Field
-                TextField(
-                  controller: definitionController,
-                  decoration: InputDecoration(
-                    labelText: 'Definition',
-                    prefixIcon: const Icon(Icons.description),
-                    border: OutlineInputBorder(
+                // Save Button
+                ElevatedButton(
+                  onPressed: () async {
+                    final updatedTerm = termController.text.trim();
+                    final updatedDefinition = definitionController.text.trim();
+
+                    if (updatedTerm.isEmpty || updatedDefinition.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please fill out all fields!'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+
+                    final oldTerm = flashcard.term;
+                    final flashcardSetName = flashcardSet.title;
+
+                    // Fetch old media file
+                    File? oldMediaFile = await fetchMedia(flashcardSetName, oldTerm);
+
+                    // Create folder for the updated term
+                    await createFlashcardFolder(updatedTerm, flashcardSetName);
+
+                    String? newMediaPath;
+
+                    // Delete the old folder
+                    await deleteFlashcardFolder(oldTerm, flashcardSetName);
+
+                    if (_mediaFile != null) {
+                      // Save new media if uploaded
+                      newMediaPath = await _saveMediaLocally(
+                        _mediaFile!,
+                        flashcardSetName,
+                        updatedTerm,
+                      );
+                      print("New media uploaded: $newMediaPath");
+                    } else if (oldMediaFile != null) {
+                      // Move old media if no new media is uploaded
+                      newMediaPath =
+                          '${(await getApplicationDocumentsDirectory()).path}/$uid/$flashcardSetName/$updatedTerm/${oldMediaFile.uri.pathSegments.last}';
+                      await oldMediaFile.copy(newMediaPath);
+                      print("Old media moved to: $newMediaPath");
+                    }
+
+                    // Update the flashcard data
+                    ref
+                        .read(flashcardsProvider(flashcardSet).notifier)
+                        .editFlashcard(
+                          flashcard.documentId,
+                          updatedTerm,
+                          updatedDefinition,
+                        );
+
+                    recordActivity(uid);
+
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Flashcard updated successfully!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
+                  child: const Text('Save'),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            // Cancel Button
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.grey),
-              ),
-            ),
-
-            // Save Button
-            ElevatedButton(
-              onPressed: () async {
-                final updatedTerm = termController.text.trim();
-                final updatedDefinition = definitionController.text.trim();
-
-                if (updatedTerm.isEmpty || updatedDefinition.isEmpty) {
-                  // Show error if fields are empty
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please fill out all fields!'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                  return;
-                }
-
-                // Update Media Files and Flashcard Content
-                ref.read(displayedMediaProvider.notifier).state = null;
-                ref.read(isMediaShownProvider.notifier).state = false;
-
-                final oldTerm = flashcard.term;
-                final flashcardSetName = flashcardSet.title;
-
-                // Fetch old media file
-                File? oldMediaFile = await fetchMedia(flashcardSetName, oldTerm);
-
-                // Create a new folder for the updated term
-                await createFlashcardFolder(updatedTerm, flashcardSetName);
-
-                if (oldMediaFile != null) {
-                  try {
-                    final newMediaPath =
-                        '${(await getApplicationDocumentsDirectory()).path}/$uid/$flashcardSetName/$updatedTerm/${oldMediaFile.uri.pathSegments.last}';
-                    await oldMediaFile.copy(newMediaPath);
-                    print("Media moved to: $newMediaPath");
-                  } catch (e) {
-                    print("Error moving media: $e");
-                  }
-                }
-
-                // Delete the old folder
-                await deleteFlashcardFolder(oldTerm, flashcardSetName);
-
-                // Update the flashcard data
-                ref
-                    .read(flashcardsProvider(flashcardSet).notifier)
-                    .editFlashcard(
-                      flashcard.documentId,
-                      updatedTerm,
-                      updatedDefinition,
-                    );
-
-                recordActivity(uid);
-
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Flashcard updated successfully!'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text('Save'),
-            ),
-          ],
+            );
+          },
         );
       },
     );

@@ -366,6 +366,8 @@ class VideoPlayerWidget extends StatefulWidget {
 class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   late VideoPlayerController _controller;
   bool _isInitialized = false;
+  bool _isError = false;
+  bool _isPlaying = false;
 
   @override
   void initState() {
@@ -376,11 +378,21 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   Future<void> initializeVideoPlayer() async {
     _controller = VideoPlayerController.file(widget.file);
 
-    await _controller.initialize();
-    if (mounted) {
+    try {
+      await _controller.initialize();
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+          _isPlaying = true;
+          _controller.play();
+        });
+      }
+    } catch (e, stack) {
+      // ignore: avoid_print
+      print('Error initializing video player: $e');
+      print(stack); // Print stack trace for debugging.
       setState(() {
-        _isInitialized = true;
-        _controller.play();
+        _isError = true;
       });
     }
   }
@@ -393,11 +405,65 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return _isInitialized
-        ? AspectRatio(
-            aspectRatio: _controller.value.aspectRatio,
-            child: VideoPlayer(_controller),
-          )
-        : const CircularProgressIndicator();
+    if (_isError) {
+      return const Center(child: Text('Error loading video'));
+    }
+
+    if (!_isInitialized) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Video display
+        AspectRatio(
+          aspectRatio: _controller.value.aspectRatio,
+          child: VideoPlayer(_controller),
+        ),
+        // Video control bar
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          child: Row(
+            children: [
+              // Play/Pause button
+              IconButton(
+                icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
+                onPressed: () {
+                  setState(() {
+                    if (_isPlaying) {
+                      _controller.pause();
+                    } else {
+                      _controller.play();
+                    }
+                    _isPlaying = !_isPlaying;
+                  });
+                },
+              ),
+              // Video progress bar
+              Expanded(
+                child: VideoProgressIndicator(
+                  _controller,
+                  allowScrubbing: true,
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                ),
+              ),
+              // Video duration
+              Text(
+                formatDuration(_controller.value.duration),
+                style: const TextStyle(fontSize: 12.0),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Format Duration for display as mm:ss
+  String formatDuration(Duration duration) {
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 }
