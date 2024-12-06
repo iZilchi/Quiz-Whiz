@@ -1,8 +1,11 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flashcard_project/models.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'dart:async';
+import '../firebase/firestore_services.dart';
 import '../tests pages/result_page.dart';
 import 'package:video_player/video_player.dart';
 import 'package:path_provider/path_provider.dart';
@@ -109,27 +112,34 @@ class _IdentificationQuizPageState extends State<IdentificationQuizPage> {
 
   bool _isQuizComplete() {
   return selectedAnswers.length == widget.questions.length;
-}
+  }
+
+  void recordActivity(String uid) {
+    final today = DateTime.now();
+    FirestoreService().addActivity(uid, today);
+  }
 
   void _submitQuiz() {
-  int score = 0;
-  for (int i = 0; i < widget.questions.length; i++) {
-    if (selectedAnswers[i]?.trim().toLowerCase() == widget.questions[i]['correctAnswer'].toLowerCase()) {
-      score++;
+    final user = FirebaseAuth.instance.currentUser;
+    recordActivity(user!.uid);
+    int score = 0;
+    for (int i = 0; i < widget.questions.length; i++) {
+      if (selectedAnswers[i]?.trim().toLowerCase() == widget.questions[i]['correctAnswer'].toLowerCase()) {
+        score++;
+      }
     }
-  }
-  Navigator.pushAndRemoveUntil(
-    context,
-      MaterialPageRoute(
-        builder: (context) => ResultPage(
-          score: score,
-          totalQuestions: widget.questions.length,
-          selectedAnswers: selectedAnswers,
-          questions: widget.questions,
-          quizType: 'Identification',
-          flashcardSet: widget.flashcardSet,
+    Navigator.pushAndRemoveUntil(
+      context,
+        MaterialPageRoute(
+          builder: (context) => ResultPage(
+            score: score,
+            totalQuestions: widget.questions.length,
+            selectedAnswers: selectedAnswers,
+            questions: widget.questions,
+            quizType: 'Identification',
+            flashcardSet: widget.flashcardSet,
+          ),
         ),
-      ),
       (route) => false,
     );
   }

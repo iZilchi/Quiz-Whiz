@@ -6,19 +6,19 @@ class Header extends StatelessWidget {
   final List<Widget>? actions; // Optional action buttons/icons
 
   const Header({
-    Key? key,
+    super.key,
     required this.title,
     this.isHomePage = false,
     this.actions,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       height: 180, // Increased height for a more prominent header
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
           colors: [
             Color.fromARGB(255, 19, 64, 116), // Primary green
             Color.fromARGB(255, 11, 37, 69), // Darker shade for gradient effect
@@ -26,7 +26,7 @@ class Header extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(50),
           bottomRight: Radius.circular(50),
         ),
@@ -34,7 +34,7 @@ class Header extends StatelessWidget {
           BoxShadow(
             color: Colors.black26,
             blurRadius: 10,
-            offset: const Offset(0, 5), // Subtle shadow for depth
+            offset: Offset(0, 5), // Subtle shadow for depth
           ),
         ],
       ),

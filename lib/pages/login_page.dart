@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors_in_immutables, library_private_types_in_public_api, use_build_context_synchronously, prefer_const_constructors
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -43,16 +45,6 @@ class _LoginPageState extends State<LoginPage> {
       isLoading = true;
     });
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
-      },
-    );
-
     try {
       // Perform sign-in operation
       final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -62,8 +54,6 @@ class _LoginPageState extends State<LoginPage> {
 
       // Initialize user in Firestore
       await initializeUser(userCredential.user!.uid, userCredential.user!.email!);
-
-      Navigator.of(context).pop();
 
       // Navigate to HomePage after successful login
       Navigator.pushReplacementNamed(context, '/home');

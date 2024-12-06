@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api, prefer_const_constructors, prefer_const_literals_to_create_immutables
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flashcard_project/providers/subject_provider.dart';
 import 'package:flashcard_project/subject%20function/add_flashcardSets_screen.dart';
@@ -87,25 +89,32 @@ class HomeContent extends ConsumerStatefulWidget {
 
 class _HomeContentState extends ConsumerState<HomeContent> {
   List<dynamic> searchResults = [];
-  FocusNode _searchFocusNode = FocusNode(); // FocusNode to track search bar focus
-  TextEditingController _searchController = TextEditingController(); // Text controller for the search input
+  final FocusNode _searchFocusNode = FocusNode(); // FocusNode to track search bar focus
+  final TextEditingController _searchController = TextEditingController(); // Text controller for the search input
 
   // Calendar variables
   late final ValueNotifier<List<int>> _selectedDays;
+  
   late final DateTime _focusedDay;
+  late final ValueNotifier<Set<DateTime>> _activityDays;
 
   @override
   void initState() {
     super.initState();
-    _searchFocusNode.addListener(() {
-      setState(() {}); // Rebuild when the search bar gains or loses focus
-    });
-
-    _focusedDay = DateTime.now(); // Set the focused day to today
-    _selectedDays = ValueNotifier<List<int>>([]); // Initialize with no selected days
+    _focusedDay = DateTime.now();
+    _activityDays = ValueNotifier<Set<DateTime>>({});
 
     _searchController.addListener(() {
-      _performSearch(_searchController.text); // Perform search every time the input changes
+      _performSearch(_searchController.text);
+    });
+
+    _fetchActivityDays();
+  }
+
+  Future<void> _fetchActivityDays() async {
+    final days = await FirestoreService().getActivityDates(widget.uid);
+    setState(() {
+      _activityDays.value = days.toSet();
     });
   }
 
@@ -310,20 +319,39 @@ class _HomeContentState extends ConsumerState<HomeContent> {
               ),
               child: TableCalendar(
                 focusedDay: _focusedDay,
-                firstDay: DateTime.utc(2020, 01, 01),
+                firstDay: DateTime.utc(2020, 1, 1),
                 lastDay: DateTime.utc(2030, 12, 31),
+
+                // Normalize the date to ignore the time
                 selectedDayPredicate: (day) {
-                  // Mark every even day as part of the streak
-                  return day.day.isEven;
-                },
-                onDaySelected: (selectedDay, focusedDay) {
-                  // Update selected day
-                  setState(() {
-                    _focusedDay = focusedDay;
-                    _selectedDays.value = [selectedDay.day];
+                  final normalizedDay = DateTime(day.year, day.month, day.day);
+                  return _activityDays.value.any((storedDay) {
+                    final normalizedStoredDay = DateTime(storedDay.year, storedDay.month, storedDay.day);
+                    return normalizedStoredDay.isAtSameMomentAs(normalizedDay);
                   });
                 },
-              ),
+
+                // Calendar Style
+                calendarStyle: CalendarStyle(
+                  todayDecoration: BoxDecoration(
+                    color: Colors.blue, // Blue color for today
+                    shape: BoxShape.circle,
+                  ),
+                  // No marker decoration here, we'll manage it through selectedDayPredicate
+                  selectedDecoration: BoxDecoration(
+                    color: Colors.green, // Green color for streak days
+                    shape: BoxShape.circle,
+                  ),
+                  // You can also customize more of the calendar style here
+                ),
+
+                // No need for eventLoader as we're directly using selectedDayPredicate to handle the streak days
+                onDaySelected: (selectedDay, focusedDay) {
+                  setState(() {
+                    _focusedDay = focusedDay;
+                  });
+                },
+              )
             ),
           ],
         ),

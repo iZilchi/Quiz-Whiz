@@ -1,4 +1,4 @@
-// ignore_for_file: no_leading_underscores_for_local_identifiers
+// ignore_for_file: no_leading_underscores_for_local_identifiers, depend_on_referenced_packages, use_super_parameters, library_private_types_in_public_api, use_build_context_synchronously, deprecated_member_use
 
 import 'dart:io';
 import 'package:flip_card/flip_card.dart';
@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
+import '../firebase/firestore_services.dart';
 import '../models.dart';
 import '../providers/flashcards_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -51,7 +52,9 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
         });
       }
     } catch (e, stack) {
+      // ignore: avoid_print
       print('Error initializing video player: $e');
+      // ignore: avoid_print
       print(stack); // Print stack trace for debugging.
       setState(() {
         _isError = true;
@@ -264,6 +267,11 @@ class AddFlashcardScreen extends ConsumerWidget {
       }
     }
 
+  void recordActivity(String uid) {
+    final today = DateTime.now();
+    FirestoreService().addActivity(uid, today);
+  }
+
   void addFlashcard() {
     TextEditingController termController = TextEditingController();
     TextEditingController definitionController = TextEditingController();
@@ -411,6 +419,8 @@ class AddFlashcardScreen extends ConsumerWidget {
                 ref.read(displayedMediaProvider.notifier).state = null;
                 ref.read(isMediaShownProvider.notifier).state = false;
 
+                recordActivity(uid);
+
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(
@@ -538,6 +548,8 @@ class AddFlashcardScreen extends ConsumerWidget {
                       updatedTerm,
                       updatedDefinition,
                     );
+
+                recordActivity(uid);
 
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -748,7 +760,7 @@ class AddFlashcardScreen extends ConsumerWidget {
       child: Scaffold(
         backgroundColor: Colors.grey[200],
         appBar: AppBar(
-          title: Text('${flashcardSet.title}',
+          title: Text('Flashcards for ${flashcardSet.title}',
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -766,7 +778,7 @@ class AddFlashcardScreen extends ConsumerWidget {
                       onTap: () {
                         ref.read(isShowingTermProvider.notifier).state =
                             !ref.read(isShowingTermProvider);
-                        print("isShowingTerm toggled: ${ref.read(isShowingTermProvider)}");
+                        recordActivity(uid);
                       },
                       child: FlipCard(
                         front: Card(
@@ -883,7 +895,6 @@ class AddFlashcardScreen extends ConsumerWidget {
                           );
                         }
                       },
-                      child: Text(ref.watch(isMediaShownProvider) ? 'Hide Media' : 'Show Media'),
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.grey,
                         disabledForegroundColor: ref.watch(isMediaShownProvider)
@@ -893,6 +904,7 @@ class AddFlashcardScreen extends ConsumerWidget {
                             ? Colors.blue
                             : Colors.grey.withOpacity(0.12),
                       ),
+                      child: Text(ref.watch(isMediaShownProvider) ? 'Hide Media' : 'Show Media'),
                     ),
                     if (ref.watch(isMediaShownProvider) &&
                         ref.watch(displayedMediaProvider) != null)
@@ -922,7 +934,7 @@ class AddFlashcardScreen extends ConsumerWidget {
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: ref.watch(displayedMediaProvider)!.path.endsWith('.mp4')
-                              ? Container(
+                              ? SizedBox(
                                   height: 200,
                                   width: 200,
                                   child: VideoPlayerWidget(

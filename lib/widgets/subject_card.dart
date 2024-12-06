@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_literals_to_create_immutables
+
 import 'package:flutter/material.dart';
 
 class SubjectCard extends StatelessWidget {
@@ -5,10 +7,10 @@ class SubjectCard extends StatelessWidget {
   final VoidCallback? onTap; // Tap handler for interactivity
 
   const SubjectCard({
-    Key? key,
+    super.key,
     required this.subjectName,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,10 +35,10 @@ class SubjectCard extends StatelessWidget {
             ),
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
-              BoxShadow(
+              const BoxShadow(
                 color: Colors.black26,
                 blurRadius: 10,
-                offset: const Offset(4, 4), // Subtle shadow for depth
+                offset: Offset(4, 4), // Subtle shadow for depth
               ),
             ],
           ),
@@ -46,7 +48,7 @@ class SubjectCard extends StatelessWidget {
               // Add a slight animation effect when tapped/hovered
               Hero(
                 tag: subjectName, // Ensures smooth transition if used in navigation
-                child: Icon(
+                child: const Icon(
                   Icons.book_rounded, // Modern rounded icon for context
                   size: 40,
                   color: Colors.white,

@@ -57,6 +57,57 @@ class FirestoreService {
       throw Exception('Error retrieving user details: $e');
     }
   }
+
+
+  //CALENDAR STREAK
+  //SAVE CALENDAR STREAK
+  Future<void> addActivity(String uid, DateTime date) async {
+    try {
+    // Normalize the date to ignore time by setting time to midnight
+    final normalizedDate = DateTime(date.year, date.month, date.day);
+
+    final docRef = _db.collection('calendarStreak').doc(uid);
+    final docSnapshot = await docRef.get();
+
+    if (docSnapshot.exists) {
+      // Fetch the existing days from Firestore
+      final List<dynamic> existingDays = docSnapshot.data()?['days'] ?? [];
+      
+      // Check if the normalized date already exists
+      if (!existingDays.any((existingDate) =>
+          DateTime.parse(existingDate).year == normalizedDate.year &&
+          DateTime.parse(existingDate).month == normalizedDate.month &&
+          DateTime.parse(existingDate).day == normalizedDate.day)) {
+        // If not, update with the new date
+        await docRef.update({
+          'days': FieldValue.arrayUnion([normalizedDate.toIso8601String()])
+        });
+      }
+    } else {
+      // If the document doesn't exist, create it with the normalized date
+      await docRef.set({
+        'days': [normalizedDate.toIso8601String()]
+      });
+    }
+  } catch (e) {
+    throw Exception('Error saving activity: $e');
+  }
+  }
+
+  //FETCH CALENDAR STREAK
+  Future<List<DateTime>> getActivityDates(String uid) async {
+    try {
+      final docSnapshot = await _db.collection('calendarStreak').doc(uid).get();
+
+      if (docSnapshot.exists) {
+        final List<dynamic> days = docSnapshot.data()?['days'] ?? [];
+        return days.map((day) => DateTime.parse(day)).toList();
+      }
+      return [];
+    } catch (e) {
+      throw Exception('Error fetching activity dates: $e');
+    }
+  }
   
 
   
@@ -218,7 +269,7 @@ class FirestoreService {
           .collection('subjects')
           .where('uid', isEqualTo: uid)
           .where('title', isGreaterThanOrEqualTo: query)
-          .where('title', isLessThanOrEqualTo: query + '\uf8ff')
+          .where('title', isLessThanOrEqualTo: '$query\uf8ff')
           .get();
 
       results.addAll(subjectsSnapshot.docs.map((doc) => Subject(doc['title'], doc.id)));
@@ -228,7 +279,7 @@ class FirestoreService {
           .collectionGroup('flashcardSets')
           .where('uid', isEqualTo: uid)
           .where('title', isGreaterThanOrEqualTo: query)
-          .where('title', isLessThanOrEqualTo: query + '\uf8ff')
+          .where('title', isLessThanOrEqualTo: '$query\uf8ff')
           .get();
 
       results.addAll(flashcardSetsSnapshot.docs.map((doc) => FlashcardSet(doc['title'], doc.id, doc.reference.parent.parent!.id)));

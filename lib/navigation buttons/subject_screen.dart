@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../firebase/firestore_services.dart';
 import '../subject function/add_flashcardSets_screen.dart';
 import '../providers/subject_provider.dart'; // Import the provider
 
@@ -15,6 +16,11 @@ class SubjectScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final subjects = ref.watch(subjectsProvider(uid));  // Watch the subjects list
     final hoverIndex = ref.watch(hoverIndexProvider);
+
+    void recordActivity(String uid) {
+      final today = DateTime.now();
+      FirestoreService().addActivity(uid, today);
+    }
 
     void addSubject() {
       TextEditingController subjectController = TextEditingController();
@@ -75,6 +81,7 @@ class SubjectScreen extends ConsumerWidget {
                   // Add the subject using Riverpod and close the dialog
                   ref.read(subjectsProvider(uid).notifier).addSubject(setName);
                   Navigator.pop(context);
+                  recordActivity(uid);
 
                   // Show success message
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -150,6 +157,7 @@ class SubjectScreen extends ConsumerWidget {
                   // Apply the edit using Riverpod and close the dialog
                   ref.read(subjectsProvider(uid).notifier).editSubject(index, setName);
                   Navigator.pop(context);
+                  recordActivity(uid);
 
                   // Show success message
                   ScaffoldMessenger.of(context).showSnackBar(

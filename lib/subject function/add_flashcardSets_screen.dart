@@ -1,7 +1,10 @@
+// ignore_for_file: file_names, sort_child_properties_last
+
 import 'package:flashcard_project/subject%20function/add_flashcards_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../firebase/firestore_services.dart';
 import '../models.dart';
 import '../providers/flashcardSet_provider.dart';
 
@@ -17,7 +20,12 @@ class AddFlashcardSetScreen extends ConsumerWidget {
     final flashcardSets = ref.watch(flashcardSetsProvider(subject.documentId)); // Pass subject ID
     final hoverIndex = ref.watch(hoverIndexProvider);
 
-    void addFlashcardSet() {
+  void recordActivity(String uid) {
+    final today = DateTime.now();
+    FirestoreService().addActivity(uid, today);
+  }
+
+  void addFlashcardSet() {
   final flashcardSetController = TextEditingController();
 
   showDialog(
@@ -89,6 +97,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
                     .read(flashcardSetsProvider(subject.documentId).notifier)
                     .addFlashcardSet(setName);
                 Navigator.pop(context); // Close dialog after adding the set
+                recordActivity(subject.documentId);
               }
             },
             style: ElevatedButton.styleFrom(
@@ -187,6 +196,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
                     .read(flashcardSetsProvider(subject.documentId).notifier)
                     .editFlashcardSet(index, setName);
                 Navigator.pop(context); // Close dialog after saving
+                recordActivity(subject.documentId);
               }
             },
             style: ElevatedButton.styleFrom(
@@ -229,19 +239,19 @@ class AddFlashcardSetScreen extends ConsumerWidget {
             color: Colors.redAccent, // Highlight delete action with red
           ),
         ),
-        content: Column(
+        content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Are you sure you want to delete this flashcard set?',
               style: TextStyle(
                 fontSize: 16, // Larger text for better readability
                 color: Colors.black87, // Dark text for primary message
               ),
             ),
-            const SizedBox(height: 16), // More space between texts
-            const Text(
+            SizedBox(height: 16), // More space between texts
+            Text(
               'This will permanently delete all flashcards inside this set. This action cannot be undone.',
               style: TextStyle(
                 fontSize: 14, // Subtle warning font size
@@ -306,7 +316,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
   backgroundColor: const Color.fromARGB(255, 135,206,235),
   appBar: AppBar(
     title: Text(
-      '${subject.title}',
+      'Flashcard Sets for ${subject.title}',
       style: GoogleFonts.poppins(
         fontSize: 20,
         fontWeight: FontWeight.w600,
