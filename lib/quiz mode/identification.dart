@@ -64,8 +64,8 @@ class _IdentificationScreenState extends ConsumerState<IdentificationScreen> {
 
     List<Map<String, dynamic>> questions = flashcards.map((flashcard) {
       return {
-        'question': flashcard.term,
-        'correctAnswer': flashcard.definition,
+        'question': flashcard.definition,
+        'correctAnswer': flashcard.term,
       };
     }).toList()
       ..shuffle();
