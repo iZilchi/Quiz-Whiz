@@ -4,6 +4,7 @@ import 'package:flashcard_project/subject%20function/add_flashcardSets_screen.da
 import 'package:flashcard_project/subject%20function/add_flashcards_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:table_calendar/table_calendar.dart'; // Import the table_calendar package
 import '../widgets/header.dart';
 import '../firebase/firestore_services.dart';
 import '../navigation buttons/quiz_screen.dart';
@@ -52,7 +53,7 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Colors.grey[200],
       body: Column(
         children: [
-          Header(title: 'QUIZ\nWHIZ',  isHomePage: _currentIndex == 0), // Dynamic header
+          Header(title: 'QUIZ\nWHIZ', isHomePage: _currentIndex == 0), // Dynamic header
           Expanded(
             child: _pages[_currentIndex], // Show the page corresponding to the current tab
           ),
@@ -87,12 +88,24 @@ class HomeContent extends ConsumerStatefulWidget {
 class _HomeContentState extends ConsumerState<HomeContent> {
   List<dynamic> searchResults = [];
   FocusNode _searchFocusNode = FocusNode(); // FocusNode to track search bar focus
+  TextEditingController _searchController = TextEditingController(); // Text controller for the search input
+
+  // Calendar variables
+  late final ValueNotifier<List<int>> _selectedDays;
+  late final DateTime _focusedDay;
 
   @override
   void initState() {
     super.initState();
     _searchFocusNode.addListener(() {
       setState(() {}); // Rebuild when the search bar gains or loses focus
+    });
+
+    _focusedDay = DateTime.now(); // Set the focused day to today
+    _selectedDays = ValueNotifier<List<int>>([]); // Initialize with no selected days
+
+    _searchController.addListener(() {
+      _performSearch(_searchController.text); // Perform search every time the input changes
     });
   }
 
@@ -112,6 +125,8 @@ class _HomeContentState extends ConsumerState<HomeContent> {
   @override
   void dispose() {
     _searchFocusNode.dispose();
+    _selectedDays.dispose(); // Dispose of the ValueNotifier
+    _searchController.dispose(); // Dispose of the text controller
     super.dispose();
   }
 
@@ -125,9 +140,10 @@ class _HomeContentState extends ConsumerState<HomeContent> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Search Bar
             TextField(
               focusNode: _searchFocusNode, // Attach the FocusNode
-              onChanged: _performSearch,
+              controller: _searchController, // Attach the TextEditingController
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.search, color: Colors.black87),
                 hintText: 'Search for subjects or flashcard sets...',
@@ -143,6 +159,7 @@ class _HomeContentState extends ConsumerState<HomeContent> {
             ),
             const SizedBox(height: 20),
 
+            // Display search results if available
             if (_searchFocusNode.hasFocus && searchResults.isNotEmpty)
               Container(
                 decoration: BoxDecoration(
@@ -266,7 +283,48 @@ class _HomeContentState extends ConsumerState<HomeContent> {
                   },
                 ),
               ),
+            const SizedBox(height: 20),
+
+            // Calendar Streak
+            Text(
+              'Calendar Streak',
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.normal,
+                color: Colors.black87,
+              ),
+            ),
             const SizedBox(height: 10),
+
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 4,
+                    offset: Offset(2, 2),
+                  ),
+                ],
+              ),
+              child: TableCalendar(
+                focusedDay: _focusedDay,
+                firstDay: DateTime.utc(2020, 01, 01),
+                lastDay: DateTime.utc(2030, 12, 31),
+                selectedDayPredicate: (day) {
+                  // Mark every even day as part of the streak
+                  return day.day.isEven;
+                },
+                onDaySelected: (selectedDay, focusedDay) {
+                  // Update selected day
+                  setState(() {
+                    _focusedDay = focusedDay;
+                    _selectedDays.value = [selectedDay.day];
+                  });
+                },
+              ),
+            ),
           ],
         ),
       ),

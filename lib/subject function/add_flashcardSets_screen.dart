@@ -306,7 +306,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
   backgroundColor: const Color.fromARGB(255, 135,206,235),
   appBar: AppBar(
     title: Text(
-      'Flashcard Sets for ${subject.title}',
+      '${subject.title}',
       style: GoogleFonts.poppins(
         fontSize: 20,
         fontWeight: FontWeight.w600,
