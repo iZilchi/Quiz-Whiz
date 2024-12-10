@@ -93,7 +93,6 @@ class _HomeContentState extends ConsumerState<HomeContent> {
   final TextEditingController _searchController = TextEditingController(); // Text controller for the search input
 
   // Calendar variables
-  late final ValueNotifier<List<int>> _selectedDays;
   
   late final DateTime _focusedDay;
   late final ValueNotifier<Set<DateTime>> _activityDays;
@@ -118,6 +117,16 @@ class _HomeContentState extends ConsumerState<HomeContent> {
     });
   }
 
+  bool _isTodayInFirestore() {
+    final today = DateTime.now();
+    return _activityDays.value.any((storedDay) {
+      final normalizedStoredDay = DateTime(storedDay.year, storedDay.month, storedDay.day);
+      return normalizedStoredDay.year == today.year &&
+            normalizedStoredDay.month == today.month &&
+            normalizedStoredDay.day == today.day;
+    });
+  }
+
   void _performSearch(String query) async {
     if (query.isNotEmpty) {
       final results = await FirestoreService().searchData(widget.uid, query);
@@ -134,7 +143,6 @@ class _HomeContentState extends ConsumerState<HomeContent> {
   @override
   void dispose() {
     _searchFocusNode.dispose();
-    _selectedDays.dispose(); // Dispose of the ValueNotifier
     _searchController.dispose(); // Dispose of the text controller
     super.dispose();
   }
@@ -322,31 +330,93 @@ class _HomeContentState extends ConsumerState<HomeContent> {
                 firstDay: DateTime.utc(2020, 1, 1),
                 lastDay: DateTime.utc(2030, 12, 31),
 
-                // Normalize the date to ignore the time
-                selectedDayPredicate: (day) {
-                  final normalizedDay = DateTime(day.year, day.month, day.day);
-                  return _activityDays.value.any((storedDay) {
+                // Restrict to a single format to hide the format button
+                availableCalendarFormats: const {
+                  CalendarFormat.month: 'Month',
+                },
+
+                // Use eventLoader to load activity data from Firestore
+                eventLoader: (day) {
+                  final normalizedDay = DateTime(day.year, day.month, day.day); // Normalize the date to ignore time
+                  return _activityDays.value.where((storedDay) {
                     final normalizedStoredDay = DateTime(storedDay.year, storedDay.month, storedDay.day);
                     return normalizedStoredDay.isAtSameMomentAs(normalizedDay);
-                  });
+                  }).toList();
+                },
+
+                // Disable date taps by setting onDaySelected to an empty function
+                onDaySelected: (selectedDay, focusedDay) {
+                  // Do nothing
                 },
 
                 // Calendar Style
                 calendarStyle: CalendarStyle(
                   todayDecoration: BoxDecoration(
-                    color: Colors.blue, // Blue color for today
+                    color: _isTodayInFirestore() ? Colors.green : Colors.blue, // Set green for today if it's in Firestore
                     shape: BoxShape.circle,
                   ),
-                  // No marker decoration here, we'll manage it through selectedDayPredicate
                   selectedDecoration: BoxDecoration(
-                    color: Colors.green, // Green color for streak days
+                    color: Colors.green, // Green color for selected streak days
                     shape: BoxShape.circle,
                   ),
-                  // You can also customize more of the calendar style here
+                  markersMaxCount: 0,
+                  // Make sure to align the text of days properly
+                  outsideTextStyle: TextStyle(color: Colors.transparent),
                 ),
 
-                // No need for eventLoader as we're directly using selectedDayPredicate to handle the streak days
-                onDaySelected: (selectedDay, focusedDay) {
+                // Customizing individual day cells using calendarBuilders
+                calendarBuilders: CalendarBuilders(
+                  // Customize the day builder to highlight activity days
+                  defaultBuilder: (context, day, focusedDay) {
+                    final normalizedDay = DateTime(day.year, day.month, day.day);
+                    
+                    // Check if the day has activity by normalizing both Firestore and today's date
+                    final hasActivity = _activityDays.value.any((storedDay) {
+                      final normalizedStoredDay = DateTime(storedDay.year, storedDay.month, storedDay.day);
+                      return normalizedStoredDay.isAtSameMomentAs(normalizedDay);
+                    });
+
+                    // Normalize today's date for comparison
+                    final isTodayInFirestore = hasActivity &&
+                        DateTime.now().year == day.year &&
+                        DateTime.now().month == day.month &&
+                        DateTime.now().day == day.day;
+
+                    // If today is in Firestore, make it green, otherwise check if it has activity
+                    if (hasActivity) {
+                      return Container(
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: isTodayInFirestore ? Colors.green : Colors.green, // Always green for activity days
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          '${day.day}',
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                      );
+                    }
+
+                    // Return the default day style if no activity
+                    return Center(
+                      child: Text(
+                        '${day.day}',
+                        style: TextStyle(color: Colors.black, fontSize: 16),
+                      ),
+                    );
+                  },
+                ),
+
+                // Center the month in the header
+                headerStyle: HeaderStyle(
+                  formatButtonVisible: false, // Hide the format button
+                  titleCentered: true, // Center the title
+                  leftChevronVisible: true, // Optional: hide the left chevron
+                  rightChevronVisible: true, // Optional: hide the right chevron
+                ),
+
+                // Retain arrow navigation
+                onPageChanged: (focusedDay) {
                   setState(() {
                     _focusedDay = focusedDay;
                   });
