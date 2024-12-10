@@ -839,7 +839,7 @@ class AddFlashcardScreen extends ConsumerWidget {
       child: Scaffold(
         backgroundColor: Colors.grey[200],
         appBar: AppBar(
-          title: Text('Flashcards for ${flashcardSet.title}',
+          title: Text('${flashcardSet.title}',
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.w600,

@@ -351,7 +351,7 @@ class _HomeContentState extends ConsumerState<HomeContent> {
                   ),
                   // No marker decoration here, we'll manage it through selectedDayPredicate
                   selectedDecoration: BoxDecoration(
-                    color: Colors.green, // Green color for streak days
+                    color: Colors.orange, // Green color for streak days
                     shape: BoxShape.circle,
                   ),
                   markersMaxCount: 0,

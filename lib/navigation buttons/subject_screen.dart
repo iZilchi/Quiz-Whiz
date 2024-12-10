@@ -17,14 +17,9 @@ class SubjectScreen extends ConsumerWidget {
     final subjects = ref.watch(subjectsProvider(uid));  // Watch the subjects list
     final showEditDelete = ref.watch(showEditDeleteProvider);
 
-    void recordActivity(String uid) async {
-      try {
-        final today = DateTime.now();
-        await FirestoreService().addActivity(uid, today); // Make sure addActivity is asynchronous and awaited
-        print('Activity recorded for UID: $uid on $today');
-      } catch (e) {
-        print('Error recording activity: $e');
-      }
+    void recordActivity(String uid) {
+      final today = DateTime.now();
+      FirestoreService().addActivity(uid, today);
     }
 
     void addSubject() {
@@ -44,6 +39,8 @@ class SubjectScreen extends ConsumerWidget {
                     labelText: 'Subject Title',
                     border: OutlineInputBorder(),
                     hintText: 'Enter subject title here',
+                    filled: true,
+                    fillColor: Color(0xFFF5F5F5),
                   ),
                   autofocus: true,
                 ),
@@ -57,11 +54,13 @@ class SubjectScreen extends ConsumerWidget {
                 },
                 child: const Text('Cancel'),
               ),
-              TextButton(
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 5, 89, 122), // Teal background
+                ),
                 onPressed: () {
                   final setName = subjectController.text.trim();
                   if (setName.isEmpty) {
-                    // Show a snack bar if the input is empty
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Subject title cannot be empty.'),
@@ -96,7 +95,10 @@ class SubjectScreen extends ConsumerWidget {
                     ),
                   );
                 },
-                child: const Text('Create'),
+                child: const Text(
+                  'Create',
+                  style: TextStyle(color: Colors.white), // White text for "Create"
+                ),
               ),
             ],
           );
@@ -114,73 +116,119 @@ class SubjectScreen extends ConsumerWidget {
       showDialog(
         context: context,
         builder: (context) {
-          return AlertDialog(
-            title: const Text('Edit Subject Title'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: subjectController,
-                  decoration: const InputDecoration(
-                    labelText: 'Set Subject Title',
-                    border: OutlineInputBorder(),
-                    hintText: 'Edit subject title here',
-                  ),
-                  autofocus: true,
-                ),
-                const SizedBox(height: 10),
-              ],
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  final setName = subjectController.text.trim();
-
-                  // Validate if input is empty
-                  if (setName.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Subject title cannot be empty.'),
-                        backgroundColor: Colors.redAccent,
-                      ),
-                    );
-                    return;
-                  }
-
-                  // Check if the subject already exists in the list to avoid duplication
-                  final existingSubjects = ref.read(subjectsProvider(uid));
-                  if (existingSubjects.any((subject) => subject.title == setName && subject.title != currentSubject.title)) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('This subject already exists.'),
-                        backgroundColor: Colors.orangeAccent,
-                      ),
-                    );
-                    return;
-                  }
-
-                  // Apply the edit using Riverpod and close the dialog
-                  ref.read(subjectsProvider(uid).notifier).editSubject(index, setName);
-                  Navigator.pop(context);
-                  recordActivity(uid);
-
-                  // Show success message
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Subject updated successfully!'),
-                      backgroundColor: Colors.green,
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 15,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Edit Subject Title',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueGrey[700],
                     ),
-                  );
-                },
-                child: const Text('Save'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: subjectController,
+                    decoration: InputDecoration(
+                      labelText: 'Edit Subject Title',
+                      hintText: 'Enter new subject title',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      prefixIcon: Icon(Icons.edit, color: Colors.blueGrey),
+                    ),
+                    autofocus: true,
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          final setName = subjectController.text.trim();
+
+                          // Validate if input is empty
+                          if (setName.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Subject title cannot be empty.'),
+                                backgroundColor: Colors.redAccent,
+                              ),
+                            );
+                            return;
+                          }
+
+                          // Check if the subject already exists in the list to avoid duplication
+                          final existingSubjects = ref.read(subjectsProvider(uid));
+                          if (existingSubjects.any((subject) => subject.title == setName && subject.title != currentSubject.title)) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('This subject already exists.'),
+                                backgroundColor: Colors.orangeAccent,
+                              ),
+                            );
+                            return;
+                          }
+
+                          // Apply the edit using Riverpod and close the dialog
+                          ref.read(subjectsProvider(uid).notifier).editSubject(index, setName);
+                          Navigator.pop(context);
+                          recordActivity(uid);
+
+                          // Show success message
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Subject updated successfully!'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueGrey,
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                        ),
+                        child: const Text(
+                          'Save',
+                          style: TextStyle(color: Colors.white), // White text for "Save"
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context); // Close the dialog without action
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.grey, padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                        ),
+                        child: const Text('Cancel'),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context); // Close the dialog without action
-                },
-                child: const Text('Cancel'),
-              ),
-            ],
+            ),
           );
         },
       );
@@ -190,42 +238,89 @@ class SubjectScreen extends ConsumerWidget {
       showDialog(
         context: context,
         builder: (context) {
-          return AlertDialog(
-            title: const Text('Delete Subject'),
-            content: const Text(
-              'Are you sure you want to delete this subject? This action will also delete everything created inside it, including flashcards and sets.',
-              style: TextStyle(color: Colors.redAccent),
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  // Perform the deletion using Riverpod
-                  ref.read(subjectsProvider(uid).notifier).deleteSubject(index);
-                  Navigator.pop(context);
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 15,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Delete Subject',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.redAccent,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Are you sure you want to delete this subject? This action will also delete everything created inside it, including flashcards and sets.',
+                    style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          // Perform the deletion using Riverpod
+                          ref.read(subjectsProvider(uid).notifier).deleteSubject(index);
+                          Navigator.pop(context);
 
-                  // Show success message with a snack bar
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Subject and its contents deleted successfully.'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                },
-                child: const Text('Delete', style: TextStyle(color: Colors.redAccent)),
+                          // Show success message with a snack bar
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Subject and its contents deleted successfully.'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent,
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                        ),
+                        child: const Text(
+                          'Delete',
+                          style: TextStyle(color: Colors.white), // White text for "Delete"
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context); // Close the dialog if the user cancels
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Delete operation cancelled.'),
+                              backgroundColor: Colors.blueGrey,
+                            ),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.grey, padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                        ),
+                        child: const Text('Cancel'),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context); // Close the dialog if the user cancels
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Delete operation cancelled.'),
-                      backgroundColor: Colors.blueGrey,
-                    ),
-                  );
-                },
-                child: const Text('Cancel'),
-              ),
-            ],
+            ),
           );
         },
       );
@@ -316,23 +411,23 @@ class SubjectScreen extends ConsumerWidget {
                           ),
                         ),
                         if (showEditDelete)
-                          Center(
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                IconButton(
-                                  onPressed: () => editSubject(index),
-                                  iconSize: 40,  // Larger icon size
-                                  icon: const Icon(Icons.edit, color: Colors.blueGrey),
-                                ),
-                                const SizedBox(width: 20),  // Add spacing between icons
-                                IconButton(
-                                  onPressed: () => deleteSubject(index),
-                                  iconSize: 40,  // Larger icon size
-                                  icon: const Icon(Icons.delete, color: Colors.redAccent),
-                                ),
-                              ],
+                          Positioned(
+                            top: 8,
+                            left: 8,
+                            child: IconButton(
+                              onPressed: () => editSubject(index),
+                              iconSize: 30,  // Adjusted size for the icon
+                              icon: const Icon(Icons.edit, color: Colors.blueGrey),
+                            ),
+                          ),
+                        if (showEditDelete)
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: IconButton(
+                              onPressed: () => deleteSubject(index),
+                              iconSize: 30,  // Adjusted size for the icon
+                              icon: const Icon(Icons.delete, color: Colors.redAccent),
                             ),
                           ),
                       ],
@@ -344,7 +439,7 @@ class SubjectScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: addSubject,
         foregroundColor: Colors.white,
-        backgroundColor: const Color.fromARGB(255, 120, 183, 208),  // A teal color for the FAB
+        backgroundColor: const Color.fromARGB(255, 5, 89, 122),  // A teal color for the FAB
         child: const Icon(Icons.add),
       ),
     );
