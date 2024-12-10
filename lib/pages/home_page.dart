@@ -117,15 +117,6 @@ class _HomeContentState extends ConsumerState<HomeContent> {
     });
   }
 
-  bool _isTodayInFirestore() {
-    final today = DateTime.now();
-    return _activityDays.value.any((storedDay) {
-      final normalizedStoredDay = DateTime(storedDay.year, storedDay.month, storedDay.day);
-      return normalizedStoredDay.year == today.year &&
-            normalizedStoredDay.month == today.month &&
-            normalizedStoredDay.day == today.day;
-    });
-  }
 
   void _performSearch(String query) async {
     if (query.isNotEmpty) {
@@ -330,7 +321,6 @@ class _HomeContentState extends ConsumerState<HomeContent> {
                 firstDay: DateTime.utc(2020, 1, 1),
                 lastDay: DateTime.utc(2030, 12, 31),
 
-                // Restrict to a single format to hide the format button
                 availableCalendarFormats: const {
                   CalendarFormat.month: 'Month',
                 },
@@ -344,70 +334,29 @@ class _HomeContentState extends ConsumerState<HomeContent> {
                   }).toList();
                 },
 
-                // Disable date taps by setting onDaySelected to an empty function
-                onDaySelected: (selectedDay, focusedDay) {
-                  // Do nothing
+                // Normalize the date to ignore the time
+                selectedDayPredicate: (day) {
+                  final normalizedDay = DateTime(day.year, day.month, day.day);
+                  return _activityDays.value.any((storedDay) {
+                    final normalizedStoredDay = DateTime(storedDay.year, storedDay.month, storedDay.day);
+                    return normalizedStoredDay.isAtSameMomentAs(normalizedDay);
+                  });
                 },
 
                 // Calendar Style
                 calendarStyle: CalendarStyle(
                   todayDecoration: BoxDecoration(
-                    color: _isTodayInFirestore() ? Colors.green : Colors.blue, // Set green for today if it's in Firestore
+                    color: Colors.blue, // Blue color for today
                     shape: BoxShape.circle,
                   ),
+                  // No marker decoration here, we'll manage it through selectedDayPredicate
                   selectedDecoration: BoxDecoration(
-                    color: Colors.green, // Green color for selected streak days
+                    color: Colors.green, // Green color for streak days
                     shape: BoxShape.circle,
                   ),
                   markersMaxCount: 0,
-                  // Make sure to align the text of days properly
-                  outsideTextStyle: TextStyle(color: Colors.transparent),
                 ),
 
-                // Customizing individual day cells using calendarBuilders
-                calendarBuilders: CalendarBuilders(
-                  // Customize the day builder to highlight activity days
-                  defaultBuilder: (context, day, focusedDay) {
-                    final normalizedDay = DateTime(day.year, day.month, day.day);
-                    
-                    // Check if the day has activity by normalizing both Firestore and today's date
-                    final hasActivity = _activityDays.value.any((storedDay) {
-                      final normalizedStoredDay = DateTime(storedDay.year, storedDay.month, storedDay.day);
-                      return normalizedStoredDay.isAtSameMomentAs(normalizedDay);
-                    });
-
-                    // Normalize today's date for comparison
-                    final isTodayInFirestore = hasActivity &&
-                        DateTime.now().year == day.year &&
-                        DateTime.now().month == day.month &&
-                        DateTime.now().day == day.day;
-
-                    // If today is in Firestore, make it green, otherwise check if it has activity
-                    if (hasActivity) {
-                      return Container(
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: isTodayInFirestore ? Colors.green : Colors.green, // Always green for activity days
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          '${day.day}',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
-                      );
-                    }
-
-                    // Return the default day style if no activity
-                    return Center(
-                      child: Text(
-                        '${day.day}',
-                        style: TextStyle(color: Colors.black, fontSize: 16),
-                      ),
-                    );
-                  },
-                ),
-
-                // Center the month in the header
                 headerStyle: HeaderStyle(
                   formatButtonVisible: false, // Hide the format button
                   titleCentered: true, // Center the title
@@ -415,11 +364,9 @@ class _HomeContentState extends ConsumerState<HomeContent> {
                   rightChevronVisible: true, // Optional: hide the right chevron
                 ),
 
-                // Retain arrow navigation
-                onPageChanged: (focusedDay) {
-                  setState(() {
-                    _focusedDay = focusedDay;
-                  });
+                // No need for eventLoader as we're directly using selectedDayPredicate to handle the streak days
+                onDaySelected: (selectedDay, focusedDay) {
+                  //Do nothing
                 },
               )
             ),
