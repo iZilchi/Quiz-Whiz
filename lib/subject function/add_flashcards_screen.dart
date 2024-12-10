@@ -857,7 +857,6 @@ class AddFlashcardScreen extends ConsumerWidget {
                       onTap: () {
                         ref.read(isShowingTermProvider.notifier).state =
                             !ref.read(isShowingTermProvider);
-                        recordActivity(uid);
                       },
                       child: FlipCard(
                         front: Card(

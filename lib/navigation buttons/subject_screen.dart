@@ -17,9 +17,14 @@ class SubjectScreen extends ConsumerWidget {
     final subjects = ref.watch(subjectsProvider(uid));  // Watch the subjects list
     final showEditDelete = ref.watch(showEditDeleteProvider);
 
-    void recordActivity(String uid) {
-      final today = DateTime.now();
-      FirestoreService().addActivity(uid, today);
+    void recordActivity(String uid) async {
+      try {
+        final today = DateTime.now();
+        await FirestoreService().addActivity(uid, today); // Make sure addActivity is asynchronous and awaited
+        print('Activity recorded for UID: $uid on $today');
+      } catch (e) {
+        print('Error recording activity: $e');
+      }
     }
 
     void addSubject() {

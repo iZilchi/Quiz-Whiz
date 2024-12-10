@@ -1,5 +1,6 @@
 // ignore_for_file: file_names, sort_child_properties_last
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flashcard_project/subject%20function/add_flashcards_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,10 +21,21 @@ class AddFlashcardSetScreen extends ConsumerWidget {
     final flashcardSets = ref.watch(flashcardSetsProvider(subject.documentId)); // Pass subject ID
     final showEditDelete = ref.watch(showEditDeleteProvider);
 
-  void recordActivity(String uid) {
-    final today = DateTime.now();
-    FirestoreService().addActivity(uid, today);
+  String? getCurrentUserUid() {
+    final user = FirebaseAuth.instance.currentUser;
+    return user?.uid;
+    
   }
+
+  void recordActivity(String uid) async {
+      try {
+        final today = DateTime.now();
+        await FirestoreService().addActivity(uid, today); // Make sure addActivity is asynchronous and awaited
+        print('Activity recorded for UID: $uid on $today');
+      } catch (e) {
+        print('Error recording activity: $e');
+      }
+    }
 
   void addFlashcardSet() {
   final flashcardSetController = TextEditingController();
@@ -91,15 +103,27 @@ class AddFlashcardSetScreen extends ConsumerWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              final setName = flashcardSetController.text.trim();
-              if (setName.isNotEmpty) {
-                ref
-                    .read(flashcardSetsProvider(subject.documentId).notifier)
-                    .addFlashcardSet(setName);
-                Navigator.pop(context); // Close dialog after adding the set
-                recordActivity(subject.documentId);
-              }
-            },
+                final setName = flashcardSetController.text.trim();
+                if (setName.isNotEmpty) {
+                  // Get the current user's UID and pass it to recordActivity
+                  final uid = getCurrentUserUid();
+                  if (uid!.isNotEmpty) {
+                    ref
+                        .read(flashcardSetsProvider(subject.documentId).notifier)
+                        .addFlashcardSet(setName);
+                    Navigator.pop(context); // Close dialog after adding the set
+                    recordActivity(uid); // Pass the UID of the current user
+                  } else {
+                    // If UID is not found, show an error message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('User not authenticated.'),
+                        backgroundColor: Colors.redAccent,
+                      ),
+                    );
+                  }
+                }
+              },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blueAccent, // Button background color
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14), // More padding for buttons
