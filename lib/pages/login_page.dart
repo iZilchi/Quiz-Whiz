@@ -58,14 +58,13 @@ class _LoginPageState extends State<LoginPage> {
       // Navigate to HomePage after successful login
       Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
-      Navigator.of(context).pop();
 
       // Handle errors and display a message
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Login Failed'),
-          content: Text(e.toString()),
+          content: Text('Invalid Credentials: The email or password entered is incorrect. Please ensure they are correct and match.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),

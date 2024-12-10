@@ -8,7 +8,7 @@ import '../firebase/firestore_services.dart';
 import '../models.dart';
 import '../providers/flashcardSet_provider.dart';
 
-final hoverIndexProvider = StateProvider<int?>((ref) => null);
+final showEditDeleteProvider = StateProvider<bool>((ref) => false);
 
 class AddFlashcardSetScreen extends ConsumerWidget {
   final Subject subject;
@@ -18,7 +18,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final flashcardSets = ref.watch(flashcardSetsProvider(subject.documentId)); // Pass subject ID
-    final hoverIndex = ref.watch(hoverIndexProvider);
+    final showEditDelete = ref.watch(showEditDeleteProvider);
 
   void recordActivity(String uid) {
     final today = DateTime.now();
@@ -312,7 +312,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
 }
 
 
-   return Scaffold(
+  return Scaffold(
   backgroundColor: const Color.fromARGB(255, 135,206,235),
   appBar: AppBar(
     title: Text(
@@ -321,10 +321,23 @@ class AddFlashcardSetScreen extends ConsumerWidget {
         fontSize: 20,
         fontWeight: FontWeight.w600,
         color: Colors.white,
-      ),),
+      ),
+    ),
     backgroundColor: const Color.fromARGB(255, 73, 141, 214),
-    elevation: 0, // Flat design for the app bar
-    iconTheme: const IconThemeData(color: Colors.white), // Black back button
+    elevation: 0,
+    iconTheme: const IconThemeData(color: Colors.white),
+    actions: [
+          IconButton(
+            icon: Icon(
+              showEditDelete ? Icons.settings_applications_outlined : Icons.settings_applications,
+              color: const Color.fromARGB(255, 255, 255, 255),
+            ),
+            onPressed: () {
+              ref.read(showEditDeleteProvider.notifier).state =
+                  !showEditDelete; // Toggle visibility state
+            },
+          ),
+        ],
   ),
   body: flashcardSets.isEmpty
       ? const Center(
@@ -348,78 +361,65 @@ class AddFlashcardSetScreen extends ConsumerWidget {
             ),
             itemCount: flashcardSets.length,
             itemBuilder: (context, index) {
-              return MouseRegion(
-                onEnter: (_) =>
-                    ref.read(hoverIndexProvider.notifier).state = index,
-                onExit: (_) =>
-                    ref.read(hoverIndexProvider.notifier).state = null,
-                child: Stack(
-                  children: [
-                    GestureDetector(
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AddFlashcardScreen(
-                            flashcardSet: flashcardSets[index],
-                          ),
+              return Stack(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AddFlashcardScreen(
+                          flashcardSet: flashcardSets[index],
                         ),
                       ),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 300), // Smoother animation
-                        curve: Curves.easeInOut,
-                        decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 248, 250, 229),
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: hoverIndex == index
-                                  ? Colors.black26
-                                  : Colors.black12,
-                              blurRadius: hoverIndex == index ? 12 : 6, // Increased shadow for hover effect
-                              offset: const Offset(4, 4), // Offset shadow slightly for better effect
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Text(
-                            flashcardSets[index].title,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black54,
-                            ),
+                    ),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 248, 250, 229),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 6,
+                            offset: Offset(4, 4),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          flashcardSets[index].title,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black54,
                           ),
                         ),
                       ),
                     ),
-                    if (hoverIndex == index)
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: Row(
-                          children: [
-                            // Edit icon
-                            IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blueAccent),
-                              tooltip: 'Edit',
-                              onPressed: () {
-                                editFlashcardSet(index);
-                              },
+                  ),
+                  if (showEditDelete)
+                    Center(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconButton(
+                                  onPressed: () => editFlashcardSet(index),
+                                  iconSize: 40,  // Larger icon size
+                                  icon: const Icon(Icons.edit, color: Colors.blueGrey),
+                                ),
+                                const SizedBox(width: 20),  // Add spacing between icons
+                                IconButton(
+                                  onPressed: () => deleteFlashcardSet(index),
+                                  iconSize: 40,  // Larger icon size
+                                  icon: const Icon(Icons.delete, color: Colors.redAccent),
+                                ),
+                              ],
                             ),
-                            // Delete icon
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.redAccent),
-                              tooltip: 'Delete',
-                              onPressed: () {
-                                deleteFlashcardSet(index);
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
+                          ),
+                ],
               );
             },
           ),

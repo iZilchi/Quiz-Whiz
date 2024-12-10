@@ -5,7 +5,7 @@ import '../firebase/firestore_services.dart';
 import '../subject function/add_flashcardSets_screen.dart';
 import '../providers/subject_provider.dart'; // Import the provider
 
-final hoverIndexProvider = StateProvider<int?>((ref) => null);
+final showEditDeleteProvider = StateProvider<bool>((ref) => false);
 
 class SubjectScreen extends ConsumerWidget {
   final String uid;
@@ -15,7 +15,7 @@ class SubjectScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final subjects = ref.watch(subjectsProvider(uid));  // Watch the subjects list
-    final hoverIndex = ref.watch(hoverIndexProvider);
+    final showEditDelete = ref.watch(showEditDeleteProvider);
 
     void recordActivity(String uid) {
       final today = DateTime.now();
@@ -229,16 +229,28 @@ class SubjectScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.grey[50],  // Lighter background to reduce contrast
       appBar: AppBar(
-        title: Text('Subjects', 
-        style: GoogleFonts.nunito(
-          fontSize: 25,
-          fontWeight: FontWeight.bold, 
-          color: Colors.black87, 
-        ),),
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255),  // Softer AppBar color for modern look
-        leading: null, // Removes the default back button
-        automaticallyImplyLeading: false, 
-        elevation: 2,  // Minimal elevation for subtle depth
+        title: Text(
+          'Subjects',
+          style: GoogleFonts.nunito(
+            fontSize: 25,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 2,
+        actions: [
+          IconButton(
+            icon: Icon(
+              showEditDelete ? Icons.settings_applications_outlined : Icons.settings_applications,
+              color: Colors.blueGrey,
+            ),
+            onPressed: () {
+              ref.read(showEditDeleteProvider.notifier).state =
+                  !showEditDelete; // Toggle visibility state
+            },
+          ),
+        ],
       ),
       body: subjects.isEmpty
           ? const Center(child: Text('No subjects created yet.'))
@@ -253,75 +265,72 @@ class SubjectScreen extends ConsumerWidget {
                 ),
                 itemCount: subjects.length,
                 itemBuilder: (context, index) {
-                  return MouseRegion(
-                    onEnter: (_) => ref.read(hoverIndexProvider.notifier).state = index,
-                    onExit: (_) => ref.read(hoverIndexProvider.notifier).state = null,
-                    child: GestureDetector(
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AddFlashcardSetScreen(subject: subjects[index]),
-                        ),
+                  return GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            AddFlashcardSetScreen(subject: subjects[index]),
                       ),
-                      child: Stack(
-                        children: [
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                            decoration: BoxDecoration(
-                              color: Colors.white,  // Light, clean background for subject cards
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 4,
-                                  offset: Offset(2, 2),
+                    ),
+                    child: Stack(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 4,
+                                offset: Offset(2, 2),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.book,
+                                  color: Colors.blueGrey[700],
+                                  size: 40,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  subjects[index].title,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blueGrey[700],
+                                  ),
                                 ),
                               ],
                             ),
-                            child: Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.book,  // Icon to represent each subject
-                                    color: Colors.blueGrey[700],  // Subtle icon color
-                                    size: 40,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    subjects[index].title,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.blueGrey[700],  // Soft text color for readability
-                                    ),
-                                  ),
-                                ],
-                              ),
+                          ),
+                        ),
+                        if (showEditDelete)
+                          Center(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconButton(
+                                  onPressed: () => editSubject(index),
+                                  iconSize: 40,  // Larger icon size
+                                  icon: const Icon(Icons.edit, color: Colors.blueGrey),
+                                ),
+                                const SizedBox(width: 20),  // Add spacing between icons
+                                IconButton(
+                                  onPressed: () => deleteSubject(index),
+                                  iconSize: 40,  // Larger icon size
+                                  icon: const Icon(Icons.delete, color: Colors.redAccent),
+                                ),
+                              ],
                             ),
                           ),
-                          if (hoverIndex == index)  // Show buttons on hover
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    onPressed: () => editSubject(index),
-                                    icon: const Icon(Icons.edit, color: Colors.blueGrey),
-                                  ),
-                                  IconButton(
-                                    onPressed: () => deleteSubject(index),
-                                    icon: const Icon(Icons.delete, color: Colors.redAccent),
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
+                      ],
                     ),
                   );
                 },

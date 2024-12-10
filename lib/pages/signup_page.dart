@@ -20,6 +20,8 @@ class _SignUpPageState extends State<SignUpPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   bool isLoading = false;
+  bool obscurePassword = true;
+  bool obscureConfirmedPassword = true;
 
   Future<void> initializeUser(String uid, String email) async {
     try {
@@ -38,6 +40,12 @@ class _SignUpPageState extends State<SignUpPage> {
     }
   }
 
+  Future<bool> doesEmailExist(String email) async {
+    final querySnapshot = await _db.collection('users').where('email', isEqualTo: email).get();
+    return querySnapshot.docs.isNotEmpty;
+  }
+  
+
   void signUp(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -45,15 +53,25 @@ class _SignUpPageState extends State<SignUpPage> {
       isLoading = true;
     });
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
-      },
-    );
+    if (await doesEmailExist(emailController.text.trim())) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Sign-Up Failed'),
+          content: const Text('The email is already in use.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      setState(() {
+        isLoading = false;
+      });
+      return;
+    }
 
     try {
       if (passwordController.text == confirmedpasswordController.text) {
@@ -70,7 +88,6 @@ class _SignUpPageState extends State<SignUpPage> {
         // Navigate to HomePage after successful sign-up
         Navigator.pushReplacementNamed(context, '/home');
       } else {
-        Navigator.of(context).pop();
 
         // Display error if passwords don't match
         showDialog(
@@ -179,14 +196,24 @@ class _SignUpPageState extends State<SignUpPage> {
                         const SizedBox(height: 15),
                         TextFormField(
                           controller: passwordController,
-                          obscureText: true,
-                          decoration: const InputDecoration(
+                          obscureText: obscurePassword,
+                          decoration: InputDecoration(
                             labelText: 'Password',
-                            labelStyle: TextStyle(fontSize: 13),
-                            border: OutlineInputBorder(
+                            labelStyle: const TextStyle(fontSize: 13),
+                            border: const OutlineInputBorder(
                               borderRadius: BorderRadius.all(Radius.circular(25)),
                             ),
-                            prefixIcon: Icon(Icons.lock),
+                            prefixIcon: const Icon(Icons.lock),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                obscurePassword ? Icons.visibility : Icons.visibility_off,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  obscurePassword = !obscurePassword;
+                                });
+                              },
+                            ),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -201,14 +228,24 @@ class _SignUpPageState extends State<SignUpPage> {
                         const SizedBox(height: 15),
                         TextFormField(
                           controller: confirmedpasswordController,
-                          obscureText: true,
-                          decoration: const InputDecoration(
+                          obscureText: obscureConfirmedPassword,
+                          decoration: InputDecoration(
                             labelText: 'Confirm Password',
-                            labelStyle: TextStyle(fontSize: 13),
-                            border: OutlineInputBorder(
+                            labelStyle: const TextStyle(fontSize: 13),
+                            border: const OutlineInputBorder(
                               borderRadius: BorderRadius.all(Radius.circular(25)),
                             ),
-                            prefixIcon: Icon(Icons.lock_outline),
+                            prefixIcon: const Icon(Icons.lock_outline),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                obscureConfirmedPassword ? Icons.visibility : Icons.visibility_off,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  obscureConfirmedPassword = !obscureConfirmedPassword;
+                                });
+                              },
+                            ),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
