@@ -35,11 +35,16 @@ class _MultipleChoiceScreenState extends ConsumerState<MultipleChoiceScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(title, style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
         content: Text(content),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.blue, // Set the background color
+              foregroundColor: Colors.white, // Set the text color
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20), // Optional: Adjust padding
+            ),
             child: const Text('OK'),
           ),
         ],
@@ -202,15 +207,25 @@ class _MultipleChoiceScreenState extends ConsumerState<MultipleChoiceScreen> {
                             _startQuiz(flashcards);
                           }
                         : null,
-                    icon: const Icon(Icons.play_arrow),
-                    label: const Text('Start Quiz'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isFormValid
-                          ? Colors.green
-                          : Colors.green.withOpacity(0.6),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                    icon: Icon(
+                      Icons.play_arrow,
+                    ),
+                    label: Text('Start Quiz'),
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.resolveWith((states) {
+                        if (states.contains(MaterialState.disabled)) {
+                          return Colors.green.withOpacity(0.6); // Disabled background color
+                        }
+                        return Colors.green; // Enabled background color
+                      }),
+                      foregroundColor: MaterialStateProperty.all(Colors.white), // Text and icon color
+                      padding: MaterialStateProperty.all(
+                        const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      shape: MaterialStateProperty.all(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     ),
                   ),

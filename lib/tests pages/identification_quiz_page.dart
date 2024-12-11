@@ -3,6 +3,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flashcard_project/models.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
 import 'dart:async';
 import '../firebase/firestore_services.dart';
@@ -257,7 +258,12 @@ class _IdentificationQuizPageState extends State<IdentificationQuizPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Identification Quiz'),
+        title: Text(
+          'Identification Quiz', 
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            color: Colors.black, 
+          ),),
         automaticallyImplyLeading: false,
         actions: [
           if (widget.timerDuration != null)
@@ -279,7 +285,7 @@ class _IdentificationQuizPageState extends State<IdentificationQuizPage> {
           children: [
             Text(
               'Question ${currentQuestionIndex + 1}/${widget.questions.length}',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
@@ -309,7 +315,7 @@ class _IdentificationQuizPageState extends State<IdentificationQuizPage> {
                 children: [
                   Text(
                     question['question'],
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.poppins(fontSize: 18),
                   ),
                   const SizedBox(height: 10),
                   TextField(
@@ -333,10 +339,28 @@ class _IdentificationQuizPageState extends State<IdentificationQuizPage> {
               children: [
                 ElevatedButton(
                   onPressed: currentQuestionIndex > 0 ? _goToPreviousQuestion : null,
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.resolveWith((states) {
+                      if (states.contains(MaterialState.disabled)) {
+                        return Colors.grey; // Disabled state
+                      }
+                      return Colors.blueAccent; // Enabled state
+                    }),
+                    foregroundColor: MaterialStateProperty.all(Colors.white), // Always white text
+                  ),
                   child: const Text('Back'),
                 ),
                 ElevatedButton(
                   onPressed: currentQuestionIndex < widget.questions.length - 1 ? _goToNextQuestion : null,
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.resolveWith((states) {
+                      if (states.contains(MaterialState.disabled)) {
+                        return Colors.grey; // Disabled state
+                      }
+                      return Colors.blueAccent; // Enabled state
+                    }),
+                    foregroundColor: MaterialStateProperty.all(Colors.white), // Always white text
+                  ),
                   child: const Text('Next'),
                 ),
               ],
@@ -345,8 +369,17 @@ class _IdentificationQuizPageState extends State<IdentificationQuizPage> {
             if (currentQuestionIndex == widget.questions.length - 1)
                 ElevatedButton(
                   onPressed: _isQuizComplete() ? _submitQuiz : null,
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.resolveWith((states) {
+                      if (states.contains(MaterialState.disabled)) {
+                        return Colors.grey; // Disabled state
+                      }
+                      return Colors.green; // Enabled state
+                    }),
+                    foregroundColor: MaterialStateProperty.all(Colors.white), // Always white text
+                  ),
                   child: const Text('Submit'),
-              ),
+                ),
           ],
         ),
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'multiple_choice_quiz_page.dart';
 import '../pages/home_page.dart';
 import '../tests pages/review_answers_page.dart';
@@ -31,7 +32,9 @@ class ResultPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Quiz Result'),
+        title: Text('Quiz Result', 
+        style: GoogleFonts.poppins(
+          fontSize: 18),),
       ),
       body: Center(
         child: Padding(
@@ -41,12 +44,12 @@ class ResultPage extends StatelessWidget {
             children: [
               Text(
                 'You scored $score out of $totalQuestions',
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
               Text(
                 'Your score: ${percentage.toStringAsFixed(2)}%',
-                style: const TextStyle(fontSize: 20),
+                style: GoogleFonts.poppins(fontSize: 20),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -58,6 +61,11 @@ class ResultPage extends StatelessWidget {
                     ),
                   );
                 },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue, // Set background color to blue
+                  foregroundColor: Colors.white, // Ensure text color is white for contrast
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20), // Optional: Adjust padding
+                ),
                 child: const Text('Back to Home'),
               ),
               const SizedBox(height: 20),
@@ -73,6 +81,11 @@ class ResultPage extends StatelessWidget {
                     ),
                   );
                 },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green, // Set background color to blue
+                  foregroundColor: Colors.white, // Ensure text color is white for contrast
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20), // Optional: Adjust padding
+                ),
                 child: const Text('Review Answers'),
               ),
               const SizedBox(height: 20),
@@ -102,6 +115,11 @@ class ResultPage extends StatelessWidget {
                     );
                   }
                 },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red, // Set background color to blue
+                  foregroundColor: Colors.white, // Ensure text color is white for contrast
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20), // Optional: Adjust padding
+                ),
                 child: const Text('Retake Test'),
               ),
             ],
