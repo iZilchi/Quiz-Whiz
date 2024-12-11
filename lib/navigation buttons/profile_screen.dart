@@ -170,76 +170,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // Function to show notification settings
-  void _showNotificationsDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text(
-            'Notification Settings',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          content: StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
-              // Notification preferences
-              bool emailNotifications = true;
-              bool pushNotifications = false;
-              bool smsNotifications = false;
-
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SwitchListTile(
-                    activeColor: Colors.green,
-                    title: const Text('Email Notifications'),
-                    subtitle: const Text('Receive updates via email.'),
-                    value: emailNotifications,
-                    onChanged: (value) {
-                      setState(() {
-                        emailNotifications = value;
-                      });
-                    },
-                  ),
-                  SwitchListTile(
-                    activeColor: Colors.green,
-                    title: const Text('Push Notifications'),
-                    subtitle: const Text('Get real-time alerts on your device.'),
-                    value: pushNotifications,
-                    onChanged: (value) {
-                      setState(() {
-                        pushNotifications = value;
-                      });
-                    },
-                  ),
-                  SwitchListTile(
-                    activeColor: Colors.green,
-                    title: const Text('SMS Notifications'),
-                    subtitle: const Text('Receive updates via SMS.'),
-                    value: smsNotifications,
-                    onChanged: (value) {
-                      setState(() {
-                        smsNotifications = value;
-                      });
-                    },
-                  ),
-                ],
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close the dialog
-              },
-              child: const Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   // Function to show About the app dialog
   void _showAboutDialog(BuildContext context) {
     showDialog(
@@ -394,12 +324,6 @@ class ProfileScreen extends StatelessWidget {
                           leading: const Icon(Icons.account_circle, color: Color.fromARGB(255, 34, 123, 148)),
                           title: const Text('Account Details'),
                           onTap: () => _editAccountDetailsDialog(context),
-                        ),
-                        const Divider(),
-                        ListTile(
-                          leading: const Icon(Icons.notifications, color: Color.fromARGB(255, 34, 123, 148)),
-                          title: const Text('Notification Settings'),
-                          onTap: () => _showNotificationsDialog(context),
                         ),
                         const Divider(),
                         ListTile(

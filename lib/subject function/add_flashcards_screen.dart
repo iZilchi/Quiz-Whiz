@@ -735,36 +735,51 @@ class AddFlashcardScreen extends ConsumerWidget {
 
   void navigateToPreviousFlashcard() {
     if (flashcards.isEmpty) {
-      // Provide feedback if no flashcards are available
+      // Show an improved notification with action
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No flashcards available to navigate.'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('No flashcards available to navigate.'),
+          backgroundColor: Colors.redAccent,
+          duration: const Duration(seconds: 2),
+          action: SnackBarAction(
+            label: 'OK',
+            textColor: Colors.white,
+            onPressed: () {
+              // Optional: Handle additional actions on press if needed
+            },
+          ),
         ),
       );
       return;
     }
-
-    // Clear media state
+     // Clear any displayed media or states in a concise way
     ref.read(displayedMediaProvider.notifier).state = null;
     ref.read(isMediaShownProvider.notifier).state = false;
 
-    // Safely calculate the previous flashcard index
-    final previousIndex =
-        (currentFlashcardIndex - 1 + flashcards.length) % flashcards.length;
+    // Calculate the next flashcard index and update the current flashcard index
+    final nextIndex = (currentFlashcardIndex + 1) % flashcards.length;
+    ref.read(currentFlashcardIndexProvider.notifier).state = nextIndex;
 
-    // Update the current flashcard index
-    ref.read(currentFlashcardIndexProvider.notifier).state = previousIndex;
-
-    // Provide optional feedback (if necessary)
+    // Provide smooth user feedback with a customized SnackBar
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Navigated to flashcard ${previousIndex + 1} of ${flashcards.length}.'),
-        backgroundColor: Colors.blueGrey,
-        duration: const Duration(seconds: 1),
+        content: Center(
+          child: Text(
+            'Flashcard: ${nextIndex + 1} of ${flashcards.length}.',
+            textAlign: TextAlign.center,  // Ensures the text is centered
+          ),
+        ),
+        backgroundColor: Colors.blueGrey.shade700,
+        duration: const Duration(seconds: 2),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),  // Rounded corners for the SnackBar
+        ),
+        behavior: SnackBarBehavior.floating,  // Floating SnackBar for modern UI
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Added margin for spacing
       ),
     );
   }
+
 
   void navigateToNextFlashcard() {
     if (flashcards.isEmpty) {
