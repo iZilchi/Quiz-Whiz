@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ReviewAnswersPage extends StatelessWidget {
   final Map<int, String?> selectedAnswers;
@@ -35,7 +36,7 @@ class ReviewAnswersPage extends StatelessWidget {
                   children: [
                     Text(
                       'Question ${index + 1}: ${question['question']}',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 10),
                     Text(
