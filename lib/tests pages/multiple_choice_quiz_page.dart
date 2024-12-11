@@ -279,109 +279,122 @@ class _QuizPageState extends State<QuizPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Question ${currentQuestionIndex + 1}/${widget.questions.length}',
-              style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height - kToolbarHeight,
             ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: question['correctAnswer'] != null && question['correctAnswer'].isNotEmpty
-                  ? () => fetchAndDisplayMedia(question['correctAnswer']!)
-                  : null, // Only enable the button if 'term' is not null or empty
-              child: Text(isMediaVisible ? 'Hide Media' : 'Show Media'),
-            ),
-            const SizedBox(height: 20),
-            if (mediaFile != null) buildMediaWidget(mediaFile!),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.2),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
+            child: IntrinsicHeight(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    question['question'],
-                    style: GoogleFonts.poppins(fontSize: 18),
+                    'Question ${currentQuestionIndex + 1}/${widget.questions.length}',
+                    style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
-                  const SizedBox(height: 10),
-                  ...question['choices'].map<Widget>((choice) {
-                    return RadioListTile<String>(
-                      title: Text(choice),
-                      value: choice,
-                      groupValue: selectedAnswers[currentQuestionIndex],
-                      onChanged: (value) {
-                        setState(() {
-                          selectedAnswers[currentQuestionIndex] = value;
-                        });
-                      },
-                    );
-                  }).toList(),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: question['correctAnswer'] != null && question['correctAnswer'].isNotEmpty
+                        ? () => fetchAndDisplayMedia(question['correctAnswer']!)
+                        : null, // Only enable the button if 'term' is not null or empty
+                    child: Text(isMediaVisible ? 'Hide Media' : 'Show Media'),
+                  ),
+                  const SizedBox(height: 20),
+                  if (mediaFile != null) buildMediaWidget(mediaFile!),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          question['question'],
+                          style: GoogleFonts.poppins(fontSize: 18),
+                        ),
+                        const SizedBox(height: 10),
+                        ...question['choices'].map<Widget>((choice) {
+                          return RadioListTile<String>(
+                            title: Text(choice),
+                            value: choice,
+                            groupValue: selectedAnswers[currentQuestionIndex],
+                            onChanged: (value) {
+                              setState(() {
+                                selectedAnswers[currentQuestionIndex] = value;
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ],
+                    ),
+                  ),
+                  Flexible(
+                    flex: 2, 
+                    child: const SizedBox(height: 30,),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton(
+                        onPressed: currentQuestionIndex > 0 ? _goToPreviousQuestion : null,
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.resolveWith((states) {
+                            if (states.contains(MaterialState.disabled)) {
+                              return Colors.grey; // Disabled state
+                            }
+                            return Colors.blueAccent; // Enabled state
+                          }),
+                          foregroundColor: MaterialStateProperty.all(Colors.white), // Always white text
+                        ),
+                        child: const Text('Back'),
+                      ),
+                      ElevatedButton(
+                        onPressed: currentQuestionIndex < widget.questions.length - 1
+                            ? _goToNextQuestion
+                            : null,
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.resolveWith((states) {
+                            if (states.contains(MaterialState.disabled)) {
+                              return Colors.grey; // Disabled state
+                            }
+                            return Colors.blueAccent; // Enabled state
+                          }),
+                          foregroundColor: MaterialStateProperty.all(Colors.white), // Always white text
+                        ),
+                        child: const Text('Next'),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+                  if (currentQuestionIndex == widget.questions.length - 1)
+                    ElevatedButton(
+                      onPressed: _isQuizComplete() ? _submitQuiz : null,
+                      style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.resolveWith((states) {
+                            if (states.contains(MaterialState.disabled)) {
+                              return Colors.grey; // Disabled state
+                            }
+                            return Colors.green; // Enabled state
+                          }),
+                          foregroundColor: MaterialStateProperty.all(Colors.white), // Always white text
+                        ),
+                        child: const Text('Submit'),
+                    ),
                 ],
               ),
             ),
-            const Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ElevatedButton(
-                  onPressed: currentQuestionIndex > 0 ? _goToPreviousQuestion : null,
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.resolveWith((states) {
-                      if (states.contains(MaterialState.disabled)) {
-                        return Colors.grey; // Disabled state
-                      }
-                      return Colors.blueAccent; // Enabled state
-                    }),
-                    foregroundColor: MaterialStateProperty.all(Colors.white), // Always white text
-                  ),
-                  child: const Text('Back'),
-                ),
-                ElevatedButton(
-                  onPressed: currentQuestionIndex < widget.questions.length - 1
-                      ? _goToNextQuestion
-                      : null,
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.resolveWith((states) {
-                      if (states.contains(MaterialState.disabled)) {
-                        return Colors.grey; // Disabled state
-                      }
-                      return Colors.blueAccent; // Enabled state
-                    }),
-                    foregroundColor: MaterialStateProperty.all(Colors.white), // Always white text
-                  ),
-                  child: const Text('Next'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            if (currentQuestionIndex == widget.questions.length - 1)
-              ElevatedButton(
-                onPressed: _isQuizComplete() ? _submitQuiz : null,
-                style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.resolveWith((states) {
-                      if (states.contains(MaterialState.disabled)) {
-                        return Colors.grey; // Disabled state
-                      }
-                      return Colors.green; // Enabled state
-                    }),
-                    foregroundColor: MaterialStateProperty.all(Colors.white), // Always white text
-                  ),
-                  child: const Text('Submit'),
-              ),
-          ],
+          ),
         ),
       ),
     );
