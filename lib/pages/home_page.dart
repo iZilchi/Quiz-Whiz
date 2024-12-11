@@ -294,12 +294,14 @@ class _HomeContentState extends ConsumerState<HomeContent> {
             const SizedBox(height: 20),
 
             // Calendar Streak
-            Text(
-              'Calendar Streak',
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.normal,
-                color: Colors.black87,
+            Center(
+              child: Text(
+                'Quiz Whiz Streak',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.normal,
+                  color: Colors.black87,
+                ),
               ),
             ),
             const SizedBox(height: 10),
@@ -334,7 +336,6 @@ class _HomeContentState extends ConsumerState<HomeContent> {
                   }).toList();
                 },
 
-                // Normalize the date to ignore the time
                 selectedDayPredicate: (day) {
                   final normalizedDay = DateTime(day.year, day.month, day.day);
                   return _activityDays.value.any((storedDay) {
@@ -343,32 +344,31 @@ class _HomeContentState extends ConsumerState<HomeContent> {
                   });
                 },
 
-                // Calendar Style
                 calendarStyle: CalendarStyle(
                   todayDecoration: BoxDecoration(
                     color: Colors.blue, // Blue color for today
                     shape: BoxShape.circle,
                   ),
-                  // No marker decoration here, we'll manage it through selectedDayPredicate
                   selectedDecoration: BoxDecoration(
-                    color: Colors.orange, // Green color for streak days
+                    color: Colors.orange, // Orange color for selected days
                     shape: BoxShape.circle,
                   ),
-                  markersMaxCount: 0,
+                  markersMaxCount: 1,
+                  markerDecoration: BoxDecoration(
+                    color: Colors.blue, 
+                    shape: BoxShape.circle,
+                  ),
                 ),
 
                 headerStyle: HeaderStyle(
-                  formatButtonVisible: false, // Hide the format button
-                  titleCentered: true, // Center the title
-                  leftChevronVisible: true, // Optional: hide the left chevron
-                  rightChevronVisible: true, // Optional: hide the right chevron
+                  formatButtonVisible: false,
+                  titleCentered: true,
+                  titleTextStyle: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-
-                // No need for eventLoader as we're directly using selectedDayPredicate to handle the streak days
-                onDaySelected: (selectedDay, focusedDay) {
-                  //Do nothing
-                },
-              )
+              ),
             ),
           ],
         ),

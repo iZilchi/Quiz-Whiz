@@ -1032,6 +1032,8 @@ class AddFlashcardScreen extends ConsumerWidget {
         floatingActionButton: FloatingActionButton(
           onPressed: addFlashcard,
           child: const Icon(Icons.add),
+          foregroundColor: Colors.white,
+          backgroundColor: const Color.fromARGB(255, 5, 89, 122),
         ),
       ),
     );

@@ -424,7 +424,8 @@ class AddFlashcardSetScreen extends ConsumerWidget {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: addFlashcardSet,
-        backgroundColor: Colors.blueAccent,
+        foregroundColor: Colors.white,
+          backgroundColor: const Color.fromARGB(255, 5, 89, 122),
         child: const Icon(
           Icons.add,
           size: 28,
