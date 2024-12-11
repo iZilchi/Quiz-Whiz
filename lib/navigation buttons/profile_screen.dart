@@ -193,7 +193,7 @@ class ProfileScreen extends StatelessWidget {
             const ListTile(
               leading: Icon(Icons.person, color: Colors.blue),
               title: Text('Developed by:\n'
-              '•Alyssa Marie Landicho\n'
+              '•Alessandra Marie Landicho\n'
               '•Chris Justine Padua\n'
               '•Kent Melard Pagcaliuangan\n'
               '•Jude Tadeja'),
