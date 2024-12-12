@@ -96,6 +96,8 @@ class _QuizPageState extends State<QuizPage> {
     if (currentQuestionIndex < widget.questions.length - 1) {
       setState(() {
         currentQuestionIndex++;
+        isMediaVisible = false;
+        mediaFile = null;
       });
     }
   }
@@ -104,6 +106,8 @@ class _QuizPageState extends State<QuizPage> {
     if (currentQuestionIndex > 0) {
       setState(() {
         currentQuestionIndex--;
+        isMediaVisible = false;
+        mediaFile = null;
       });
     }
   }

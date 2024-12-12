@@ -98,6 +98,8 @@ class _IdentificationQuizPageState extends State<IdentificationQuizPage> {
     if (currentQuestionIndex < widget.questions.length - 1) {
       setState(() {
         currentQuestionIndex++;
+        isMediaVisible = false;
+        mediaFile = null;
       });
       _answerController.clear();
     }
@@ -107,6 +109,8 @@ class _IdentificationQuizPageState extends State<IdentificationQuizPage> {
     if (currentQuestionIndex > 0) {
       setState(() {
         currentQuestionIndex--;
+        isMediaVisible = false;
+        mediaFile = null;
       });
       _answerController.clear();
     }
