@@ -735,47 +735,46 @@ class AddFlashcardScreen extends ConsumerWidget {
 
   void navigateToPreviousFlashcard() {
     if (flashcards.isEmpty) {
-    // Show an improved notification with action
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('No flashcards available to navigate.'),
-        backgroundColor: Colors.redAccent,
-        duration: const Duration(seconds: 1),
-        action: SnackBarAction(
-          label: 'OK',
-          textColor: Colors.white,
-          onPressed: () {
-            // Optional: Handle additional actions on press if needed
-          },
+      // Show an improved notification with action
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('No flashcards available to navigate.'),
+          backgroundColor: Colors.redAccent,
+          duration: const Duration(seconds: 2),
+          action: SnackBarAction(
+            label: 'OK',
+            textColor: Colors.white,
+            onPressed: () {
+              // Optional: Handle additional actions on press if needed
+            },
+          ),
         ),
-      ),
-    );
+      );
       return;
     }
-
-    // Clear any displayed media or states in a concise way
+     // Clear any displayed media or states in a concise way
     ref.read(displayedMediaProvider.notifier).state = null;
     ref.read(isMediaShownProvider.notifier).state = false;
 
-    // Calculate the previous flashcard index and update the current flashcard index
-    final previousIndex = (currentFlashcardIndex - 1 + flashcards.length) % flashcards.length;
-    ref.read(currentFlashcardIndexProvider.notifier).state = previousIndex;
+    // Calculate the next flashcard index and update the current flashcard index
+    final nextIndex = (currentFlashcardIndex + 1) % flashcards.length;
+    ref.read(currentFlashcardIndexProvider.notifier).state = nextIndex;
 
     // Provide smooth user feedback with a customized SnackBar
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Center(
           child: Text(
-            'Flashcard: ${previousIndex + 1} of ${flashcards.length}.',
-            textAlign: TextAlign.center, // Ensures the text is centered
+            'Flashcard: ${nextIndex + 1} of ${flashcards.length}.',
+            textAlign: TextAlign.center,  // Ensures the text is centered
           ),
         ),
         backgroundColor: Colors.blueGrey.shade700,
-        duration: const Duration(seconds: 1),
+        duration: const Duration(seconds: 2),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16), // Rounded corners for the SnackBar
+          borderRadius: BorderRadius.circular(16),  // Rounded corners for the SnackBar
         ),
-        behavior: SnackBarBehavior.floating, // Floating SnackBar for modern UI
+        behavior: SnackBarBehavior.floating,  // Floating SnackBar for modern UI
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Added margin for spacing
       ),
     );
@@ -789,7 +788,7 @@ class AddFlashcardScreen extends ConsumerWidget {
         SnackBar(
           content: const Text('No flashcards available to navigate.'),
           backgroundColor: Colors.redAccent,
-          duration: const Duration(seconds: 1),
+          duration: const Duration(seconds: 2),
           action: SnackBarAction(
             label: 'OK',
             textColor: Colors.white,
@@ -820,7 +819,7 @@ class AddFlashcardScreen extends ConsumerWidget {
           ),
         ),
         backgroundColor: Colors.blueGrey.shade700,
-        duration: const Duration(seconds: 1),
+        duration: const Duration(seconds: 2),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),  // Rounded corners for the SnackBar
         ),
@@ -887,7 +886,6 @@ class AddFlashcardScreen extends ConsumerWidget {
                             elevation: 5,
                             margin: const EdgeInsets.all(16),
                             child: Container(
-                              width: 1000,
                               alignment: Alignment.center,
                               child: Padding(
                                 padding: const EdgeInsets.all(30),
@@ -909,7 +907,6 @@ class AddFlashcardScreen extends ConsumerWidget {
                             elevation: 5,
                             margin: const EdgeInsets.all(16),
                             child: Container(
-                              width: 1000,
                               alignment: Alignment.center,
                               child: Padding(
                                 padding: const EdgeInsets.all(16),
@@ -1062,8 +1059,8 @@ class AddFlashcardScreen extends ConsumerWidget {
                                     .path
                                     .endsWith('.mp4')
                                 ? SizedBox(
-                                    height: 200,
-                                    width: 200,
+                                    width: constraints.maxWidth * 0.9, // Responsive width
+                                    height: constraints.maxHeight * 0.25, // Responsive height
                                     child: AspectRatio(
                                       aspectRatio: 16 / 9,  // Aspect ratio for video
                                       child: VideoPlayerWidget(
@@ -1072,8 +1069,8 @@ class AddFlashcardScreen extends ConsumerWidget {
                                   )
                                 : Image.file(
                                     ref.watch(displayedMediaProvider)!,
-                                    height: 200,
-                                    width: 200,
+                                    width: constraints.maxWidth * 0.9, // Responsive width
+                                    height: constraints.maxHeight * 0.25, // Responsive height
                                     fit: BoxFit.cover,
                                   ),
                           ),
@@ -1092,6 +1089,7 @@ class AddFlashcardScreen extends ConsumerWidget {
     backgroundColor: const Color.fromARGB(255, 5, 89, 122),
   ),
 ),
+
 
     );
   }
