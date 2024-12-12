@@ -17,14 +17,15 @@ class IdentificationQuizPage extends StatefulWidget {
   final FlashcardSet flashcardSet;
 
   const IdentificationQuizPage({
-    super.key, 
-    required this.questions, 
+    super.key,
+    required this.questions,
     this.timerDuration,
     required this.flashcardSet,
-    });
+  });
 
   @override
-  _IdentificationQuizPageState createState() => _IdentificationQuizPageState();
+  _IdentificationQuizPageState createState() =>
+      _IdentificationQuizPageState();
 }
 
 class _IdentificationQuizPageState extends State<IdentificationQuizPage> {
@@ -112,7 +113,7 @@ class _IdentificationQuizPageState extends State<IdentificationQuizPage> {
   }
 
   bool _isQuizComplete() {
-  return selectedAnswers.length == widget.questions.length;
+    return selectedAnswers.length == widget.questions.length;
   }
 
   void recordActivity(String uid) {
@@ -125,62 +126,63 @@ class _IdentificationQuizPageState extends State<IdentificationQuizPage> {
     recordActivity(user!.uid);
     int score = 0;
     for (int i = 0; i < widget.questions.length; i++) {
-      if (selectedAnswers[i]?.trim().toLowerCase() == widget.questions[i]['correctAnswer'].toLowerCase()) {
+      if (selectedAnswers[i]?.trim().toLowerCase() ==
+          widget.questions[i]['correctAnswer'].toLowerCase()) {
         score++;
       }
     }
     Navigator.pushAndRemoveUntil(
       context,
-        MaterialPageRoute(
-          builder: (context) => ResultPage(
-            score: score,
-            totalQuestions: widget.questions.length,
-            selectedAnswers: selectedAnswers,
-            questions: widget.questions,
-            quizType: 'Identification',
-            flashcardSet: widget.flashcardSet,
-          ),
+      MaterialPageRoute(
+        builder: (context) => ResultPage(
+          score: score,
+          totalQuestions: widget.questions.length,
+          selectedAnswers: selectedAnswers,
+          questions: widget.questions,
+          quizType: 'Identification',
+          flashcardSet: widget.flashcardSet,
         ),
+      ),
       (route) => false,
     );
   }
 
   Future<File?> fetchMedia(String flashcardSetName, String term) async {
-      try {
-        final directory = await getApplicationDocumentsDirectory();
-        final filePath = '${directory.path}/$uid/$flashcardSetName/$term/';
-        print('Checking directory path: $filePath');
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath = '${directory.path}/$uid/$flashcardSetName/$term/';
+      print('Checking directory path: $filePath');
 
-        final dirExists = Directory(filePath).existsSync();
-        print("Directory exists: $dirExists");
+      final dirExists = Directory(filePath).existsSync();
+      print("Directory exists: $dirExists");
 
-        if (!dirExists) return null;
+      if (!dirExists) return null;
 
-        final allFiles = Directory(filePath).listSync().toList();
-        print("Files in directory: ${allFiles.map((e) => e.path).toList()}");
+      final allFiles = Directory(filePath).listSync().toList();
+      print("Files in directory: ${allFiles.map((e) => e.path).toList()}");
 
-        final mediaFileList = allFiles
-            .whereType<File>()
-            .where((file) =>
-                file.path.endsWith('.png') ||
-                file.path.endsWith('.jpg') ||
-                file.path.endsWith('.jpeg') ||
-                file.path.endsWith('.mp4') ||
-                file.path.endsWith('.mkv'))
-            .toList();
+      final mediaFileList = allFiles
+          .whereType<File>()
+          .where((file) =>
+              file.path.endsWith('.png') ||
+              file.path.endsWith('.jpg') ||
+              file.path.endsWith('.jpeg') ||
+              file.path.endsWith('.mp4') ||
+              file.path.endsWith('.mkv'))
+          .toList();
 
-        if (mediaFileList.isEmpty) {
-          print("No media files found in: $filePath");
-          return null;
-        }
-
-        print("Media found: ${mediaFileList.first.path}");
-        return mediaFileList.first;
-      } catch (e) {
-        print("Error in fetchMedia: $e");
+      if (mediaFileList.isEmpty) {
+        print("No media files found in: $filePath");
         return null;
       }
+
+      print("Media found: ${mediaFileList.first.path}");
+      return mediaFileList.first;
+    } catch (e) {
+      print("Error in fetchMedia: $e");
+      return null;
     }
+  }
 
   Future<void> fetchAndDisplayMedia(String term) async {
     if (isMediaVisible) {
@@ -191,7 +193,7 @@ class _IdentificationQuizPageState extends State<IdentificationQuizPage> {
       });
     } else {
       // Fetch and display media if it's not already visible
-      final file = await fetchMedia(widget.flashcardSet.title, term); 
+      final file = await fetchMedia(widget.flashcardSet.title, term);
       if (file != null && await file.exists()) {
         setState(() {
           mediaFile = file;
@@ -249,36 +251,35 @@ class _IdentificationQuizPageState extends State<IdentificationQuizPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final question = widget.questions[currentQuestionIndex];
+ @override
+Widget build(BuildContext context) {
+  final question = widget.questions[currentQuestionIndex];
 
-    print("Questions: ${widget.questions}");
-    print("Term for current question: ${question['question']}");
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Identification Quiz', 
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            color: Colors.black, 
-          ),),
-        automaticallyImplyLeading: false,
-        actions: [
-          if (widget.timerDuration != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Center(
-                child: Text(
-                  'Time Left: ${_formatTime(_remainingTime)}',
-                  style: const TextStyle(fontSize: 16),
-                ),
+  return Scaffold(
+    appBar: AppBar(
+      title: Text(
+        'Identification Quiz',
+        style: GoogleFonts.poppins(
+          fontSize: 18,
+          color: Colors.black,
+        ),
+      ),
+      automaticallyImplyLeading: false,
+      actions: [
+        if (widget.timerDuration != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Center(
+              child: Text(
+                'Time Left: ${_formatTime(_remainingTime)}',
+                style: const TextStyle(fontSize: 16),
               ),
             ),
-        ],
-      ),
-      body: Padding(
+          ),
+      ],
+    ),
+    body: SingleChildScrollView( // Wrap the entire body with SingleChildScrollView
+      child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -291,11 +292,11 @@ class _IdentificationQuizPageState extends State<IdentificationQuizPage> {
             ElevatedButton(
               onPressed: question['correctAnswer'] != null && question['correctAnswer'].isNotEmpty
                   ? () => fetchAndDisplayMedia(question['correctAnswer']!)
-                  : null, // Only enable the button if 'term' is not null or empty
+                  : null,
               child: Text(isMediaVisible ? 'Hide Media' : 'Show Media'),
             ),
             const SizedBox(height: 20),
-            if (mediaFile != null) buildMediaWidget(mediaFile!),
+            if (mediaFile != null) buildMediaWidget(mediaFile!), // Display media if available
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(16),
@@ -333,7 +334,7 @@ class _IdentificationQuizPageState extends State<IdentificationQuizPage> {
                 ],
               ),
             ),
-            const Spacer(),
+            const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -367,25 +368,28 @@ class _IdentificationQuizPageState extends State<IdentificationQuizPage> {
             ),
             const SizedBox(height: 20),
             if (currentQuestionIndex == widget.questions.length - 1)
-                ElevatedButton(
-                  onPressed: _isQuizComplete() ? _submitQuiz : null,
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.resolveWith((states) {
-                      if (states.contains(MaterialState.disabled)) {
-                        return Colors.grey; // Disabled state
-                      }
-                      return Colors.green; // Enabled state
-                    }),
-                    foregroundColor: MaterialStateProperty.all(Colors.white), // Always white text
-                  ),
-                  child: const Text('Submit'),
+              ElevatedButton(
+                onPressed: _isQuizComplete() ? _submitQuiz : null,
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.resolveWith((states) {
+                    if (states.contains(MaterialState.disabled)) {
+                      return Colors.grey; // Disabled state
+                    }
+                    return Colors.green; // Enabled state
+                  }),
+                  foregroundColor: MaterialStateProperty.all(Colors.white), // Always white text
                 ),
+                child: const Text('Submit'),
+              ),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
 }
+
+}
+
 
 class VideoPlayerWidget extends StatefulWidget {
   final File file;
