@@ -1,4 +1,3 @@
-
 // ignore_for_file: file_names, sort_child_properties_last
 
 import 'package:flashcard_project/subject%20function/add_flashcards_screen.dart';
@@ -299,8 +298,9 @@ class AddFlashcardSetScreen extends ConsumerWidget {
                 child: const Text(
                   'Cancel',
                   style: TextStyle(
-                    color: Colors.black87,
-                    fontSize: 16, // Larger text for the cancel button
+                    color: Colors.black87, // Dark color for cancel button
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16, // Larger font size for consistency
                   ),
                 ),
               ),
@@ -311,7 +311,7 @@ class AddFlashcardSetScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 135,206,235),
+      backgroundColor: const Color.fromARGB(255, 135, 206, 235),
       appBar: AppBar(
         title: Text(
           '${subject.title}',
@@ -327,7 +327,9 @@ class AddFlashcardSetScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: Icon(
-              showEditDelete ? Icons.settings_applications_outlined : Icons.settings_applications,
+              showEditDelete
+                  ? Icons.settings_applications_outlined
+                  : Icons.settings_applications,
               color: const Color.fromARGB(255, 255, 255, 255),
             ),
             onPressed: () {
@@ -348,84 +350,87 @@ class AddFlashcardSetScreen extends ConsumerWidget {
                 ),
               ),
             )
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 1.5, // Adjust the aspect ratio for better visuals
+          : SingleChildScrollView(  // Wrap the content with SingleChildScrollView to enable scrolling
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: GridView.builder(
+                  shrinkWrap: true,  // Ensures GridView doesn't take up all available space
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 1.5,
+                  ),
+                  itemCount: flashcardSets.length,
+                  itemBuilder: (context, index) {
+                    return Stack(
+                      children: [
+                        GestureDetector(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AddFlashcardScreen(
+                                flashcardSet: flashcardSets[index],
+                              ),
+                            ),
+                          ),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            decoration: BoxDecoration(
+                              color: const Color.fromARGB(255, 248, 250, 229),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 6,
+                                  offset: Offset(4, 4),
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: Text(
+                                flashcardSets[index].title,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (showEditDelete)
+                          Positioned(
+                            top: 8,
+                            left: 8,
+                            child: IconButton(
+                              onPressed: () => editFlashcardSet(index),
+                              iconSize: 30,
+                              icon: const Icon(Icons.edit, color: Colors.blueGrey),
+                            ),
+                          ),
+                        if (showEditDelete)
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: IconButton(
+                              onPressed: () => deleteFlashcardSet(index),
+                              iconSize: 30,
+                              icon: const Icon(Icons.delete, color: Colors.redAccent),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
                 ),
-                itemCount: flashcardSets.length,
-                itemBuilder: (context, index) {
-                  return Stack(
-                    children: [
-                      GestureDetector(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AddFlashcardScreen(
-                              flashcardSet: flashcardSets[index],
-                            ),
-                          ),
-                        ),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                          decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 248, 250, 229),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 6,
-                                offset: Offset(4, 4),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Text(
-                              flashcardSets[index].title,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black54,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (showEditDelete)
-                        Positioned(
-                          top: 8,
-                          left: 8,
-                          child: IconButton(
-                            onPressed: () => editFlashcardSet(index),
-                            iconSize: 30,
-                            icon: const Icon(Icons.edit, color: Colors.blueGrey),
-                          ),
-                        ),
-                      if (showEditDelete)
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: IconButton(
-                            onPressed: () => deleteFlashcardSet(index),
-                            iconSize: 30,
-                            icon: const Icon(Icons.delete, color: Colors.redAccent),
-                          ),
-                        ),
-                    ],
-                  );
-                },
               ),
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: addFlashcardSet,
         foregroundColor: Colors.white,
-          backgroundColor: const Color.fromARGB(255, 5, 89, 122),
+        backgroundColor: const Color.fromARGB(255, 5, 89, 122),
         child: const Icon(
           Icons.add,
           size: 28,
