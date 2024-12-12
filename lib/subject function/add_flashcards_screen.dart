@@ -23,7 +23,7 @@ final isMediaShownProvider = StateProvider<bool>((ref) => false);
 class VideoPlayerWidget extends StatefulWidget {
   final File file;
 
-  const VideoPlayerWidget({Key? key, required this.file}) : super(key: key);
+  const VideoPlayerWidget({super.key, required this.file});
 
   @override
   _VideoPlayerWidgetState createState() => _VideoPlayerWidgetState();
@@ -53,10 +53,8 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
           _controller.play();
         });
       }
-    } catch (e, stack) {
-      // ignore: avoid_print
+    } catch (e) {
       print('Error initializing video player: $e');
-      print(stack); // Print stack trace for debugging.
       setState(() {
         _isError = true;
       });
@@ -82,17 +80,31 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Video display
-        AspectRatio(
-          aspectRatio: _controller.value.aspectRatio,
-          child: VideoPlayer(_controller),
+        // Padding around the container
+        Padding(
+          padding: const EdgeInsets.all(16.0), // Add padding around the container
+          child: Flexible(
+            child: Container(
+              width: double.infinity, // Ensures it takes up the full width of the screen
+              height: MediaQuery.of(context).size.height * 0.4, // Adjust to 40% of screen height
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8), // Optional: Round the corners
+              ),
+              child: FittedBox(
+                fit: BoxFit.contain, // Ensures the video fits within the container while maintaining aspect ratio
+                child: SizedBox(
+                  width: _controller.value.size?.width ?? MediaQuery.of(context).size.width,
+                  height: _controller.value.size?.height ?? MediaQuery.of(context).size.height * 0.4,
+                  child: VideoPlayer(_controller),
+                ),
+              ),
+            ),
+          ),
         ),
-        // Video control bar
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
           child: Row(
             children: [
-              // Play/Pause button
               IconButton(
                 icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
                 onPressed: () {
@@ -106,7 +118,6 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                   });
                 },
               ),
-              // Video progress bar
               Expanded(
                 child: VideoProgressIndicator(
                   _controller,
@@ -114,7 +125,6 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 ),
               ),
-              // Video duration
               Text(
                 formatDuration(_controller.value.duration),
                 style: const TextStyle(fontSize: 12.0),
@@ -126,7 +136,6 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     );
   }
 
-  /// Format Duration for display as mm:ss
   String formatDuration(Duration duration) {
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
@@ -735,47 +744,46 @@ class AddFlashcardScreen extends ConsumerWidget {
 
   void navigateToPreviousFlashcard() {
     if (flashcards.isEmpty) {
-    // Show an improved notification with action
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('No flashcards available to navigate.'),
-        backgroundColor: Colors.redAccent,
-        duration: const Duration(seconds: 1),
-        action: SnackBarAction(
-          label: 'OK',
-          textColor: Colors.white,
-          onPressed: () {
-            // Optional: Handle additional actions on press if needed
-          },
+      // Show an improved notification with action
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('No flashcards available to navigate.'),
+          backgroundColor: Colors.redAccent,
+          duration: const Duration(seconds: 2),
+          action: SnackBarAction(
+            label: 'OK',
+            textColor: Colors.white,
+            onPressed: () {
+              // Optional: Handle additional actions on press if needed
+            },
+          ),
         ),
-      ),
-    );
+      );
       return;
     }
-
-    // Clear any displayed media or states in a concise way
+     // Clear any displayed media or states in a concise way
     ref.read(displayedMediaProvider.notifier).state = null;
     ref.read(isMediaShownProvider.notifier).state = false;
 
-    // Calculate the previous flashcard index and update the current flashcard index
-    final previousIndex = (currentFlashcardIndex - 1 + flashcards.length) % flashcards.length;
-    ref.read(currentFlashcardIndexProvider.notifier).state = previousIndex;
+    // Calculate the next flashcard index and update the current flashcard index
+    final nextIndex = (currentFlashcardIndex + 1) % flashcards.length;
+    ref.read(currentFlashcardIndexProvider.notifier).state = nextIndex;
 
     // Provide smooth user feedback with a customized SnackBar
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Center(
           child: Text(
-            'Flashcard: ${previousIndex + 1} of ${flashcards.length}.',
-            textAlign: TextAlign.center, // Ensures the text is centered
+            'Flashcard: ${nextIndex + 1} of ${flashcards.length}.',
+            textAlign: TextAlign.center,  // Ensures the text is centered
           ),
         ),
         backgroundColor: Colors.blueGrey.shade700,
-        duration: const Duration(seconds: 1),
+        duration: const Duration(seconds: 2),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16), // Rounded corners for the SnackBar
+          borderRadius: BorderRadius.circular(16),  // Rounded corners for the SnackBar
         ),
-        behavior: SnackBarBehavior.floating, // Floating SnackBar for modern UI
+        behavior: SnackBarBehavior.floating,  // Floating SnackBar for modern UI
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Added margin for spacing
       ),
     );
@@ -789,7 +797,7 @@ class AddFlashcardScreen extends ConsumerWidget {
         SnackBar(
           content: const Text('No flashcards available to navigate.'),
           backgroundColor: Colors.redAccent,
-          duration: const Duration(seconds: 1),
+          duration: const Duration(seconds: 2),
           action: SnackBarAction(
             label: 'OK',
             textColor: Colors.white,
@@ -820,7 +828,7 @@ class AddFlashcardScreen extends ConsumerWidget {
           ),
         ),
         backgroundColor: Colors.blueGrey.shade700,
-        duration: const Duration(seconds: 1),
+        duration: const Duration(seconds: 2),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),  // Rounded corners for the SnackBar
         ),
@@ -1058,17 +1066,13 @@ class AddFlashcardScreen extends ConsumerWidget {
                                           .watch(displayedMediaProvider)!
                                           .path
                                           .endsWith('.mp4')
-                                      ? SizedBox(
-                                          height: 200,
-                                          width: 200,
+                                      ? SizedBox(                                        
                                           child: VideoPlayerWidget(
                                               file: ref.watch(
                                                   displayedMediaProvider)!),
                                         )
                                       : Image.file(
                                           ref.watch(displayedMediaProvider)!,
-                                          height: 200,
-                                          width: 200,
                                           fit: BoxFit.cover,
                                         ),
                                 ),

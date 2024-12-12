@@ -434,10 +434,8 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
           _controller.play();
         });
       }
-    } catch (e, stack) {
-      // ignore: avoid_print
+    } catch (e) {
       print('Error initializing video player: $e');
-      print(stack); // Print stack trace for debugging.
       setState(() {
         _isError = true;
       });
@@ -463,17 +461,31 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Video display
-        AspectRatio(
-          aspectRatio: _controller.value.aspectRatio,
-          child: VideoPlayer(_controller),
+        // Padding around the container
+        Padding(
+          padding: const EdgeInsets.all(16.0), // Add padding around the container
+          child: Flexible(
+            child: Container(
+              width: double.infinity, // Ensures it takes up the full width of the screen
+              height: MediaQuery.of(context).size.height * 0.4, // Adjust to 40% of screen height
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8), // Optional: Round the corners
+              ),
+              child: FittedBox(
+                fit: BoxFit.contain, // Ensures the video fits within the container while maintaining aspect ratio
+                child: SizedBox(
+                  width: _controller.value.size?.width ?? MediaQuery.of(context).size.width,
+                  height: _controller.value.size?.height ?? MediaQuery.of(context).size.height * 0.4,
+                  child: VideoPlayer(_controller),
+                ),
+              ),
+            ),
+          ),
         ),
-        // Video control bar
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
           child: Row(
             children: [
-              // Play/Pause button
               IconButton(
                 icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
                 onPressed: () {
@@ -487,7 +499,6 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                   });
                 },
               ),
-              // Video progress bar
               Expanded(
                 child: VideoProgressIndicator(
                   _controller,
@@ -495,7 +506,6 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 ),
               ),
-              // Video duration
               Text(
                 formatDuration(_controller.value.duration),
                 style: const TextStyle(fontSize: 12.0),
@@ -507,10 +517,10 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     );
   }
 
-  /// Format Duration for display as mm:ss
   String formatDuration(Duration duration) {
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 }
+
