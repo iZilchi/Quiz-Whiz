@@ -468,8 +468,8 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
               child: FittedBox(
                 fit: BoxFit.contain, // Ensures the video fits within the container while maintaining aspect ratio
                 child: SizedBox(
-                  width: _controller.value.size?.width ?? MediaQuery.of(context).size.width,
-                  height: _controller.value.size?.height ?? MediaQuery.of(context).size.height * 0.4,
+                  width: _controller.value.size.width,
+                  height: _controller.value.size.height,
                   child: VideoPlayer(_controller),
                 ),
               ),
